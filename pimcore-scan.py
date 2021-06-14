@@ -158,7 +158,7 @@ if args.ping:
 
 if args.bundles or args.all:
     print('\n# Installed bundles')
-    for file in os.listdir(os.fsencode(pwd + '/bundles')):
+    for file in os.listdir(pwd + '/bundles'):
         filename = os.fsdecode(file)
         if filename.endswith(".json"):
             f = open(pwd + '/bundles/' + filename,)
