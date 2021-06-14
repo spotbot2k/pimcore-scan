@@ -1,4 +1,4 @@
-#!/bin/python
+#!/usr/bin/python
 import requests, argparse, json, os
 import xml.etree.ElementTree as xml
 
