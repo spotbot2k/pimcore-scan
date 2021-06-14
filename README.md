@@ -1,6 +1,12 @@
 # Pimcore Scan
 
-Simple dependency free scaner for [Pimcore](https://github.com/pimcore/pimcore). It is not ment to be used as a voulnerability scaner but rather for service and maintenance.
+Simple scaner for [Pimcore](https://github.com/pimcore/pimcore). It is not ment to be used as a voulnerability scaner but rather for service and maintenance.
+
+## Installation
+
+``` bash
+python -m pip install -r requirements.txt
+```
 
 ## Usage
 
