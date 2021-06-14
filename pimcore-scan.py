@@ -159,9 +159,8 @@ if args.ping:
 if args.bundles or args.all:
     print('\n# Installed bundles')
     for file in os.listdir(pwd + '/bundles'):
-        filename = os.fsdecode(file)
-        if filename.endswith(".json"):
-            f = open(pwd + '/bundles/' + filename,)
+        if file.endswith(".json"):
+            f = open(pwd + '/bundles/' + file,)
             plugin = json.loads(f.read())
             if (hostHasFile(host, plugin['path'])):
                 print('Bundle Detected: %s by %s' % (plugin['name'], plugin['author']))
