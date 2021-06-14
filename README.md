@@ -13,10 +13,10 @@ python -m pip install -r requirements.txt
 ## Usage
 
 ``` bash
-usage: pimcore-scan.py [-h] [-a] [-b] [-H] [-l] [-r] [-s] [-S] [-v] host
+usage: ./pimcore-scan.py example.com -a
 
 positional arguments:
-  host           Scan response headers
+  host           Hostname of the target without the schema (**example.com**)
 
 optional arguments:
   -h, --help     show this help message and exit
