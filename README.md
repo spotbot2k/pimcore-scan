@@ -2,6 +2,8 @@
 
 Simple scaner for [Pimcore](https://github.com/pimcore/pimcore). It is not ment to be used as a voulnerability scaner but rather for service and maintenance.
 
+At this point is still in early development state.
+
 ## Installation
 
 ``` bash
