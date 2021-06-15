@@ -16,7 +16,7 @@ python -m pip install -r requirements.txt
 usage: ./pimcore-scan.py example.com -a
 
 positional arguments:
-  host           Hostname of the target without the schema (**example.com**)
+  host           Hostname of the target without the schema (example.com)
 
 optional arguments:
   -h, --help     show this help message and exit
