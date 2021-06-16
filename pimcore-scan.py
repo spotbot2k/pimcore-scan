@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import requests, argparse, json, os
+import requests, argparse, json, os, re
 import xml.etree.ElementTree as xml
 
 parser = argparse.ArgumentParser(description='Simple pimcore status scanner.')
@@ -7,6 +7,7 @@ parser.add_argument('host', help='Hostname of the target without the schema (e.g
 parser.add_argument('-a', '--all', help='Perform all checks', default=False, action='store_true')
 parser.add_argument('-b', '--bundles', help='Detect installed bundles', default=False, action='store_true')
 parser.add_argument('-H', '--headers', help='Scan response headers', default=False, action='store_true')
+parser.add_argument('-i', '--input_file', help='Use a list of hosts in a file instead of stdio', default=False, action='store_true')
 parser.add_argument('-l', '--login', help='Check if login route is visible', default=False, action='store_true')
 parser.add_argument('-p', '--ping', help='Ping every entry in the sitemap and print the status', default=False, action='store_true')
 parser.add_argument('-r', '--robots', help='Search robots.txt', default=False, action='store_true')
@@ -167,4 +168,16 @@ class Scanner:
         if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/lib/ckeditor/plugins/clipboard/dialogs/paste.js')):
             return '6.5.0 <= x <= 10'
 
-s = Scanner(args.host, args)
+if args.input_file:
+    with open(args.host,) as file:
+        for line in file:
+            stripped_line = line.strip()
+            regex = re.compile('(?P<schema>http[s]{0,1}:\/\/){0,1}(?P<host>[1-9a-z\.-]+)(?P<path>\/.*){0,1}')
+            try:
+                host = regex.search(stripped_line).group('host')
+                print(host)
+                s = Scanner(host, args)
+            except:
+                print("%s in not a valid host" % stripped_line)
+else:
+    s = Scanner(args.host, args)

@@ -12,13 +12,31 @@ python -m pip install -r requirements.txt
 
 ## Usage
 
+To perform checks
+
 ``` bash
-usage: ./pimcore-scan.py example.com -a
+python pimcore-scan -a example.com
+```
 
-positional arguments:
-  host           Hostname of the target without the schema (example.com)
+To check the sitemap (will not do it with -a)
 
-optional arguments:
+``` bash
+python pimcore-scan -p example.com
+```
+
+To check multiple domains write them in a file (one per line)
+
+``` bash
+python pimcore-scan -ia example.com
+```
+
+Combine checks as needed
+
+``` bash
+python pimcore-scan -vH example.com
+```
+
+``` bash
   -h, --help     show this help message and exit
   -a, --all      Perform all checks
   -b, --bundles  Detect installed bundles
