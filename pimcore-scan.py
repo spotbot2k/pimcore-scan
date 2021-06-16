@@ -166,7 +166,10 @@ class Scanner:
             return '>= 10'
 
         if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/lib/ckeditor/plugins/clipboard/dialogs/paste.js')):
-            return '6.5.0 <= x <= 10'
+            if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/pimcore/document/editable.js')):
+                return '6.8.0 <= x <= 10'
+            else:
+                return '6.5.0 <= x <= 6.7.3'
 
 if args.input_file:
     with open(args.host,) as file:
