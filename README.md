@@ -37,16 +37,20 @@ python pimcore-scan -vH example.com
 ```
 
 ``` bash
-  -h, --help     show this help message and exit
-  -a, --all      Perform all checks
-  -b, --bundles  Detect installed bundles
-  -H, --headers  Scan response headers
-  -l, --login    Check if login route is visible
-  -p, --ping     Ping every entry in the sitemap and print the status
-  -r, --robots   Search robots.txt
-  -s, --status   Check for SSL redirect
-  -S, --sitemap  Fetch domains from the sitemap
-  -v, --version  Detect instaleld pimcore version
+  -h, --help            show this help message and exit
+  -a, --all             Perform all checks
+  -b, --bundles         Detect installed bundles
+  -d, --domains         Detect domains based on sitemaps
+  -H, --headers         Scan response headers
+  -i, --input_file      Use a list of hosts in a file instead of stdio
+  -l, --login           Check if login route is visible
+  -p, --ping            Ping every entry in the sitemap and print the status
+  -r, --robots          Search robots.txt
+  -s, --status          Check for SSL redirect
+  -S, --sitemaps        Find sitemap files
+  -u USER_AGENT, --user-agent USER_AGENT
+                        Use custom user agent string
+  -v, --version         Detect instaleld pimcore version
 ```
 
 ## What does work
