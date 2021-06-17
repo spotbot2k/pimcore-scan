@@ -14,6 +14,7 @@ parser.add_argument('-p', '--ping', help='Ping every entry in the sitemap and pr
 parser.add_argument('-r', '--robots', help='Search robots.txt', default=False, action='store_true')
 parser.add_argument('-s', '--status', help='Check for SSL redirect', default=False, action='store_true')
 parser.add_argument('-S', '--sitemaps', help='Find sitemap files', default=False, action='store_true')
+parser.add_argument('-u', '--user-agent', help='Use custom user agent string', default=False)
 parser.add_argument('-v', '--version', help='Detect instaleld pimcore version', default=False, action='store_true')
 args = parser.parse_args()
 
@@ -24,8 +25,14 @@ class Scanner:
 
     def __init__(self, host, args):
         self.host = 'http://' + host
+        self.headers = {}
 
-        response = requests.get(self.host, allow_redirects=True)
+        if args.user_agent:
+            self.headers = {
+                'User-Agent': args.user_agent
+            }
+
+        response = requests.get(self.host, allow_redirects=True, headers=self.headers)
         # Save the resulting URL to avoid all the redirects in future requests
         if (response.request.path_url != '/'):
             self.host = response.url[:len(response.url) - len(response.request.path_url)]
@@ -58,18 +65,18 @@ class Scanner:
                     print('Debug exposed: %s' % val)
 
         if args.login or args.all:
-            response = requests.get(self.host + 'admin', allow_redirects=True)
+            response = requests.get(self.host + 'admin', allow_redirects=True, headers=self.headers)
             if ('admin/login' in response.url):
                 print('Login: /admin is detected and visible')
 
         if args.robots or args.all:
-            response = requests.get(self.host + 'robots.txt', allow_redirects=False)
+            response = requests.get(self.host + 'robots.txt', allow_redirects=False, headers=self.headers)
             if ('text/plain' in response.headers.get('Content-type')):
                 for line in response.iter_lines():
                     self.analyse_robots_line(line.decode("utf-8"))
 
         if args.domains or args.sitemaps or args.all:
-            response = requests.get(self.host + 'sitemap.xml', allow_redirects=True)
+            response = requests.get(self.host + 'sitemap.xml', allow_redirects=True, headers=self.headers)
             if (response.status_code == 200 and response.headers.get('Content-Type') == 'application/xml'):
                 sitemap = xml.fromstring(response.text)
                 sites = []
@@ -88,14 +95,14 @@ class Scanner:
                 print('No sitemap found')
 
         if args.ping:
-            response = requests.get(self.host + 'sitemap.xml', allow_redirects=True)
+            response = requests.get(self.host + 'sitemap.xml', allow_redirects=True, headers=self.headers)
             if (response.status_code == 200 and response.headers.get('Content-Type') == 'application/xml'):
                 sitemap = xml.fromstring(response.text)
                 sites = []
 
                 for child in sitemap.findall('sitemap:sitemap',SITEMAP_NAMESPACE):
                     sitemapFile = child.find('sitemap:loc',SITEMAP_NAMESPACE).text
-                    subRequest = requests.get(sitemapFile, allow_redirects=True)
+                    subRequest = requests.get(sitemapFile, allow_redirects=True, headers=self.headers)
                     if (subRequest.status_code == 200 and subRequest.headers.get('Content-Type') == 'application/xml'):
                         sitemap = xml.fromstring(subRequest.text)
                         for node in sitemap.findall('sitemap:url',SITEMAP_NAMESPACE):
@@ -115,7 +122,7 @@ class Scanner:
 
     def host_has_file(self, host, file):
         try:
-            response = requests.get(host + file, allow_redirects=True)
+            response = requests.get(host + file, allow_redirects=True, headers=self.headers)
             if (response.status_code == 200 and file in response.url):
                 return True
             else:
@@ -124,7 +131,7 @@ class Scanner:
             return False
 
     def get_url_status_code(self, url):
-        response = requests.get(url, allow_redirects=True)
+        response = requests.get(url, allow_redirects=True, headers=self.headers)
         return response.status_code
 
     def split_robots_line(self, line):
@@ -145,7 +152,7 @@ class Scanner:
                 print('Found a sitemap in robots.txt: %s' % str)
 
     def fetch_domain_from_sitemap(self, sitemapUrl):
-        response = requests.get(sitemapUrl, allow_redirects=True)
+        response = requests.get(sitemapUrl, allow_redirects=True, headers=self.headers)
         if (response.status_code == 200 and response.headers.get('Content-Type') == 'application/xml'):
             sitemap = xml.fromstring(response.text)
             return sitemap.find('sitemap:url',SITEMAP_NAMESPACE).find('sitemap:loc',SITEMAP_NAMESPACE).text
