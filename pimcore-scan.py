@@ -45,8 +45,10 @@ class Scanner:
 
         if args.version or args.all:
             version = self.detect_version()
-            if version:
+            if version and args.all:
                 print('Detected version: %s' % version)
+            if version and args.version:
+                print(version)
 
         if args.headers or args.all:
             for key,val in response.headers.items():
@@ -156,7 +158,12 @@ class Scanner:
             return '<= 4.6.5'
 
         if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/lib/jquery-3.4.1.min.js')):
-            return '6.0.0 <= x <= 6.2.3'
+            if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/pimcore/object/bulk-base.js')):
+                if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/lib/ckeditor/vendor/promise.js')):
+                    return '6.2'
+                else:
+                    return '6.1'
+            return '6.0'
 
         if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/lib/jquery-3.3.1.min.js')):
             return '5.4.0 <= x <= 5.8.9'
@@ -165,13 +172,17 @@ class Scanner:
             return '5.2.0 <= x <= 5.3.1'
 
         if (not self.host_has_file(self.host, 'bundles/pimcoreadmin/js/lib/ext/ext-all.js') and self.host_has_file(self.host, 'bundles/pimcorecore/js/targeting.js')):
-            return '>= 10'
+            return '10'
 
         if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/lib/ckeditor/plugins/clipboard/dialogs/paste.js')):
             if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/pimcore/document/editable.js')):
-                return '6.8.0 <= x <= 10'
+                if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/pimcore/document/editables/area_abstract.js')):
+                    return '6.9'
+                return '6.8'
             else:
-                return '6.5.0 <= x <= 6.7.3'
+                if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/pimcore/asset/metadata/data/asset.js')):
+                    return '6.7'
+                return '6.5 <= x <= 6.6'
 
 if args.input_file:
     with open(args.host,) as file:
