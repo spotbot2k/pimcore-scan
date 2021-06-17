@@ -6,13 +6,14 @@ parser = argparse.ArgumentParser(description='Simple pimcore status scanner.')
 parser.add_argument('host', help='Hostname of the target without the schema (e.g. example.com)')
 parser.add_argument('-a', '--all', help='Perform all checks', default=False, action='store_true')
 parser.add_argument('-b', '--bundles', help='Detect installed bundles', default=False, action='store_true')
+parser.add_argument('-d', '--domains', help='Detect domains based on sitemaps', default=False, action='store_true')
 parser.add_argument('-H', '--headers', help='Scan response headers', default=False, action='store_true')
 parser.add_argument('-i', '--input_file', help='Use a list of hosts in a file instead of stdio', default=False, action='store_true')
 parser.add_argument('-l', '--login', help='Check if login route is visible', default=False, action='store_true')
 parser.add_argument('-p', '--ping', help='Ping every entry in the sitemap and print the status', default=False, action='store_true')
 parser.add_argument('-r', '--robots', help='Search robots.txt', default=False, action='store_true')
 parser.add_argument('-s', '--status', help='Check for SSL redirect', default=False, action='store_true')
-parser.add_argument('-S', '--sitemap', help='Fetch domains from the sitemap', default=False, action='store_true')
+parser.add_argument('-S', '--sitemaps', help='Find sitemap files', default=False, action='store_true')
 parser.add_argument('-v', '--version', help='Detect instaleld pimcore version', default=False, action='store_true')
 args = parser.parse_args()
 
@@ -65,7 +66,7 @@ class Scanner:
                 for line in response.iter_lines():
                     self.analyse_robots_line(line.decode("utf-8"))
 
-        if args.sitemap or args.all:
+        if args.domains or args.sitemaps or args.all:
             response = requests.get(self.host + 'sitemap.xml', allow_redirects=True)
             if (response.status_code == 200 and response.headers.get('Content-Type') == 'application/xml'):
                 sitemap = xml.fromstring(response.text)
@@ -73,13 +74,14 @@ class Scanner:
 
                 for child in sitemap.findall('sitemap:sitemap',SITEMAP_NAMESPACE):
                     sitemapFile = child.find('sitemap:loc',SITEMAP_NAMESPACE).text
-                    print('Sitemap fund: %s' % sitemapFile)
+                    if args.sitemaps or args.all:
+                        print(sitemapFile)
                     if ('site_' in sitemapFile):
                         sites.append(sitemapFile)
                 for sitemapFile in sites:
                     domain = self.fetch_domain_from_sitemap(sitemapFile)
-                    if isinstance(domain, str):
-                        print('Found domain in sitemap: %s' % domain)
+                    if isinstance(domain, str) and (args.domains or args.all):
+                        print(domain)
             else:
                 print('No sitemap found')
 
