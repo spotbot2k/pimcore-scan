@@ -173,10 +173,17 @@ class Scanner:
             return '6.0'
 
         if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/lib/jquery-3.3.1.min.js')):
-            return '5.4.0 <= x <= 5.8.9'
+            if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/pimcore/element/workflows.js')):
+                if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/pimcore/object/gridcolumn/operator/Iterator.js')):
+                    if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/lib/ckeditor/lang/es-mx.js')):
+                        return '5.8'
+                    else:
+                        return '5.7'
+                return '5.6'
+            return '5.4'
 
         if (self.host_has_file(self.host, 'pimcore/static6/js/lib/jquery-3.3.1.min.js')):
-            return '5.2.0 <= x <= 5.3.1'
+            return '5.2 <= x <= 5.3'
 
         if (not self.host_has_file(self.host, 'bundles/pimcoreadmin/js/lib/ext/ext-all.js') and self.host_has_file(self.host, 'bundles/pimcorecore/js/targeting.js')):
             return '10'
@@ -187,15 +194,17 @@ class Scanner:
                     return '6.9'
                 return '6.8'
             else:
-                if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/pimcore/asset/metadata/data/asset.js')):
+                if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/pimcore/asset/metadata/editor.js')):
                     return '6.7'
+                if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/pimcore/asset/metadata/data/asset.js')):
+                    return '6.6'
                 return '6.5 <= x <= 6.6'
 
 if args.input_file:
     with open(args.host,) as file:
         for line in file:
             stripped_line = line.strip()
-            regex = re.compile('(?P<schema>http[s]{0,1}:\/\/){0,1}(?P<host>[1-9a-z\.-]+)(?P<path>\/.*){0,1}')
+            regex = re.compile('(?P<schema>http[s]{0,1}:\/\/){0,1}(?P<host>[0-9a-z\.-]+)(?P<path>\/.*){0,1}')
             try:
                 host = regex.search(stripped_line).group('host')
                 print(host)
@@ -203,4 +212,9 @@ if args.input_file:
             except:
                 print("%s in not a valid host" % stripped_line)
 else:
-    s = Scanner(args.host, args)
+    regex = re.compile('(?P<schema>http[s]{0,1}:\/\/){0,1}(?P<host>[0-9a-z\.-]+)(?P<path>\/.*){0,1}')
+    try:
+        host = regex.search(args.host).group('host')
+        s = Scanner(host, args)
+    except:
+        print("%s in not a valid host" % args.host)
