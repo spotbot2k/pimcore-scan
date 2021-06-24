@@ -20,6 +20,7 @@ args = parser.parse_args()
 
 SITEMAP_NAMESPACE = {'sitemap': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
 PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
+requests.packages.urllib3.disable_warnings()
 
 class Scanner:
 
@@ -32,7 +33,7 @@ class Scanner:
                 'User-Agent': args.user_agent
             }
 
-        response = requests.get(self.host, allow_redirects=True, headers=self.headers)
+        response = requests.get(self.host, allow_redirects=True, headers=self.headers, verify=False)
         # Save the resulting URL to avoid all the redirects in future requests
         if (response.request.path_url != '/'):
             self.host = response.url[:len(response.url) - len(response.request.path_url)]
@@ -65,18 +66,18 @@ class Scanner:
                     print('Debug exposed: %s' % val)
 
         if args.login or args.all:
-            response = requests.get(self.host + 'admin', allow_redirects=True, headers=self.headers)
+            response = requests.get(self.host + 'admin', allow_redirects=True, headers=self.headers, verify=False)
             if ('admin/login' in response.url):
                 print('Login: /admin is detected and visible')
 
         if args.robots or args.all:
-            response = requests.get(self.host + 'robots.txt', allow_redirects=False, headers=self.headers)
+            response = requests.get(self.host + 'robots.txt', allow_redirects=False, headers=self.headers, verify=False)
             if ('text/plain' in response.headers.get('Content-type')):
                 for line in response.iter_lines():
                     self.analyse_robots_line(line.decode("utf-8"))
 
         if args.domains or args.sitemaps or args.all:
-            response = requests.get(self.host + 'sitemap.xml', allow_redirects=True, headers=self.headers)
+            response = requests.get(self.host + 'sitemap.xml', allow_redirects=True, headers=self.headers, verify=False)
             if (response.status_code == 200 and response.headers.get('Content-Type') == 'application/xml'):
                 sitemap = xml.fromstring(response.text)
                 sites = []
@@ -95,14 +96,14 @@ class Scanner:
                 print('No sitemap found')
 
         if args.ping:
-            response = requests.get(self.host + 'sitemap.xml', allow_redirects=True, headers=self.headers)
+            response = requests.get(self.host + 'sitemap.xml', allow_redirects=True, headers=self.headers, verify=False)
             if (response.status_code == 200 and response.headers.get('Content-Type') == 'application/xml'):
                 sitemap = xml.fromstring(response.text)
                 sites = []
 
                 for child in sitemap.findall('sitemap:sitemap',SITEMAP_NAMESPACE):
                     sitemapFile = child.find('sitemap:loc',SITEMAP_NAMESPACE).text
-                    subRequest = requests.get(sitemapFile, allow_redirects=True, headers=self.headers)
+                    subRequest = requests.get(sitemapFile, allow_redirects=True, headers=self.headers, verify=False)
                     if (subRequest.status_code == 200 and subRequest.headers.get('Content-Type') == 'application/xml'):
                         sitemap = xml.fromstring(subRequest.text)
                         for node in sitemap.findall('sitemap:url',SITEMAP_NAMESPACE):
@@ -122,7 +123,7 @@ class Scanner:
 
     def host_has_file(self, host, file):
         try:
-            response = requests.get(host + file, allow_redirects=True, headers=self.headers)
+            response = requests.get(host + file, allow_redirects=True, headers=self.headers, verify=False)
             if (response.status_code == 200 and file in response.url):
                 return True
             else:
@@ -131,7 +132,7 @@ class Scanner:
             return False
 
     def get_url_status_code(self, url):
-        response = requests.get(url, allow_redirects=True, headers=self.headers)
+        response = requests.get(url, allow_redirects=True, headers=self.headers, verify=False)
         return response.status_code
 
     def split_robots_line(self, line):
@@ -152,7 +153,7 @@ class Scanner:
                 print('Found a sitemap in robots.txt: %s' % str)
 
     def fetch_domain_from_sitemap(self, sitemapUrl):
-        response = requests.get(sitemapUrl, allow_redirects=True, headers=self.headers)
+        response = requests.get(sitemapUrl, allow_redirects=True, headers=self.headers, verify=False)
         if (response.status_code == 200 and response.headers.get('Content-Type') == 'application/xml'):
             sitemap = xml.fromstring(response.text)
             return sitemap.find('sitemap:url',SITEMAP_NAMESPACE).find('sitemap:loc',SITEMAP_NAMESPACE).text
@@ -163,14 +164,6 @@ class Scanner:
 
         if (self.host_has_file(self.host, 'pimcore/static/swf/expressInstall.swf')):
             return '<= 4.6.5'
-
-        if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/lib/jquery-3.4.1.min.js')):
-            if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/pimcore/object/bulk-base.js')):
-                if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/lib/ckeditor/vendor/promise.js')):
-                    return '6.2'
-                else:
-                    return '6.1'
-            return '6.0'
 
         if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/lib/jquery-3.3.1.min.js')):
             if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/pimcore/element/workflows.js')):
@@ -185,10 +178,25 @@ class Scanner:
         if (self.host_has_file(self.host, 'pimcore/static6/js/lib/jquery-3.3.1.min.js')):
             return '5.2 <= x <= 5.3'
 
-        if (not self.host_has_file(self.host, 'bundles/pimcoreadmin/js/lib/ext/ext-all.js') and self.host_has_file(self.host, 'bundles/pimcorecore/js/targeting.js')):
+        if (self.host_has_file(self.host, 'bundles/pimcoreadmin/img/login/pcx.svg')):
             return '10'
 
-        if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/lib/ckeditor/plugins/clipboard/dialogs/paste.js')):
+        if (self.host_has_file(self.host, 'bundles/pimcoreadmin/img/login/pimconaut-world.svg')):
+            if (not self.host_has_file(self.host, 'bundles/pimcoreadmin/js/pimcore/object/bulk-base.js')):
+                return '6.0'
+
+            if (not self.host_has_file(self.host, 'bundles/pimcoreadmin/js/lib/ckeditor/vendor/promise.js')):
+                return '6.1'
+
+            if (not self.host_has_file(self.host, 'bundles/pimcoreadmin/js/pimcore/asset/gridexport/csv.js')):
+                return '6.2'
+
+            if (not self.host_has_file(self.host, 'bundles/pimcoreadmin/img/flat-color-icons/email-forward.svg')):
+                return '6.3'
+
+            if (not self.host_has_file(self.host, 'bundles/pimcoreadmin/js/lib/ckeditor/plugins/clipboard/dialogs/paste.js')):
+                return '6.4'
+
             if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/pimcore/document/editable.js')):
                 if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/pimcore/document/editables/area_abstract.js')):
                     return '6.9'
