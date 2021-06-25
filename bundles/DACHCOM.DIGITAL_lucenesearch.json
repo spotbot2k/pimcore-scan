@@ -1,5 +1,6 @@
 {
     "author": "DACHCOM.DIGITAL Stefan Hagspiel (http://www.dachcom.com/)",
     "name": "Lucene Search",
-    "path": "bundles/lucenesearch/js/backend/startup.js"
+    "path": "bundles/lucenesearch/js/backend/startup.js",
+    "url": "https://github.com/dachcom-digital/pimcore-lucene-search"
 }

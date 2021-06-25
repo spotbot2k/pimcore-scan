@@ -1,5 +1,6 @@
 {
     "author": "Dominik Pfaffenbauer",
     "name": "CoreShop - Pimcore Extension Bundle",
-    "path": "bundles/coreshoppimcore/pimcore/js/broker.js"
+    "path": "bundles/coreshoppimcore/pimcore/js/broker.js",
+    "url": "https://github.com/coreshop/CoreShop"
 }

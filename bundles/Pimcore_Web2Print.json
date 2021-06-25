@@ -1,5 +1,6 @@
 {
     "author": "Pimcore GmbH (http://www.pimcore.org)",
     "name": "Web2Print",
-    "path": "bundles/web2printtools/js/Web2Print/bundle.js"
+    "path": "bundles/web2printtools/js/Web2Print/bundle.js",
+    "url": "https://github.com/pimcore/web2print-tools"
 }

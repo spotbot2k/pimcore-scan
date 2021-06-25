@@ -118,7 +118,7 @@ class Scanner:
                     f = open(PROJECT_ROOT + '/bundles/' + file,)
                     plugin = json.loads(f.read())
                     if (self.host_has_file(self.host, plugin['path'])):
-                        print('Bundle Detected: %s by %s' % (plugin['name'], plugin['author']))
+                        print('Bundle Detected: %s by %s, %s' % (plugin['name'], plugin['author'], plugin['url']))
                     f.close()
 
     def host_has_file(self, host, file):

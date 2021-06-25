@@ -1,5 +1,6 @@
 {
     "author": "DACHCOM.DIGITAL Stefan Hagspiel (http://www.dachcom.com/)",
     "name": "Members",
-    "path": "bundles/members/css/admin.css"
+    "path": "bundles/members/css/admin.css",
+    "url": "https://github.com/dachcom-digital/pimcore-members"
 }

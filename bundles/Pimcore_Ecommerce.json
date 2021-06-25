@@ -1,5 +1,6 @@
 {
     "author": "Pimcore GmbH (http://www.pimcore.org)",
     "name": "Ecommerce Framework",
-    "path": "bundles/pimcoreecommerceframework/js/bundle.js"
+    "path": "bundles/pimcoreecommerceframework/js/bundle.js",
+    "url": "https://github.com/pimcore/pimcore"
 }

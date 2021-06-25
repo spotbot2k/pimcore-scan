@@ -1,5 +1,6 @@
 {
     "author": "w-vision AG, Dominik Pfaffenbauer",
     "name": "DataDefinitions",
-    "path": "bundles/datadefinitions/pimcore/js/startup.js"
+    "path": "bundles/datadefinitions/pimcore/js/startup.js",
+    "url": "https://github.com/w-vision/DataDefinitions"
 }

@@ -1,5 +1,6 @@
 {
     "author": "Pimcore GmbH (http://www.pimcore.org)",
     "name": "Datahub",
-    "path": "bundles/pimcoredatahub/graphiql.min.js"
+    "path": "bundles/pimcoredatahub/graphiql.min.js",
+    "url": "https://github.com/pimcore/data-hub"
 }
