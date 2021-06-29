@@ -1,0 +1,6 @@
+{
+    "author": "Pimcore GmbH (http://www.pimcore.org)",
+    "name": "OutputDataConfigToolkit",
+    "path": "bundles/outputdataconfigtoolkit/js/Bundle.js",
+    "url": "https://github.com/pimcore/output-data-config-toolkit"
+}

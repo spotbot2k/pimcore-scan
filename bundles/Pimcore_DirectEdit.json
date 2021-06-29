@@ -1,0 +1,6 @@
+{
+    "author": "Pimcore GmbH (http://www.pimcore.org)",
+    "name": "Direct Edit",
+    "path": "bundles/pimcoredirectedit/js/startup.js",
+    "url": "https://pimcore.com/docs/direct-edit/current/"
+}
