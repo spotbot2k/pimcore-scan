@@ -1,0 +1,6 @@
+{
+    "author": "Pimcore GmbH (http://www.pimcore.org)",
+    "name": "Data Hub - Simple REST",
+    "path": "/bundles/pimcoredatahubsimplerest/js/pimcore/startup.js",
+    "url": "https://github.com/pimcore/pimcore"
+}

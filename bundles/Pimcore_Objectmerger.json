@@ -1,0 +1,6 @@
+{
+    "author": "Pimcore GmbH (http://www.pimcore.org)",
+    "name": "Object Merger",
+    "path": "/bundles/objectmerger/js/plugin.js",
+    "url": "https://github.com/pimcore/object-merger"
+}
