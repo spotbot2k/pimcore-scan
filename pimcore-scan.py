@@ -160,7 +160,9 @@ class Scanner:
 
     def detect_version(self):
         if (self.host_has_file(self.host, 'bundles/pimcoreadmin/img/login/pcx.svg')):
-            return '10'
+            if (self.host_has_file(self.host, 'bundles/pimcoreadmin/img/flat-color-icons/static_page.svg')):
+                return '10.1'
+            return '10.0'
 
         if (self.host_has_file(self.host, 'bundles/pimcoreadmin/img/login/pimconaut-world.svg')):
             if (not self.host_has_file(self.host, 'bundles/pimcoreadmin/js/pimcore/object/bulk-base.js')):
