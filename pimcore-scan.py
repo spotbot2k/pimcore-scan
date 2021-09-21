@@ -9,6 +9,7 @@ parser.add_argument('-b', '--bundles', help='Detect installed bundles', default=
 parser.add_argument('-d', '--domains', help='Detect domains based on sitemaps', default=False, action='store_true')
 parser.add_argument('-H', '--headers', help='Scan response headers', default=False, action='store_true')
 parser.add_argument('-i', '--input_file', help='Use a list of hosts in a file instead of stdio', default=False, action='store_true')
+parser.add_argument('-I', '--ip', help='Detect the ip adress of the server', default=False, action='store_true')
 parser.add_argument('-l', '--login', help='Check if login route is visible', default=False, action='store_true')
 parser.add_argument('-p', '--ping', help='Ping every entry in the sitemap and print the status', default=False, action='store_true')
 parser.add_argument('-r', '--robots', help='Search robots.txt', default=False, action='store_true')
@@ -16,6 +17,7 @@ parser.add_argument('-s', '--status', help='Check for SSL redirect', default=Fal
 parser.add_argument('-S', '--sitemaps', help='Find sitemap files', default=False, action='store_true')
 parser.add_argument('-u', '--user-agent', help='Use custom user agent string', default=False)
 parser.add_argument('-v', '--version', help='Detect instaleld pimcore version', default=False, action='store_true')
+parser.add_argument('-V', '--verbose', help='Show detailed error messages', default=False, action='store_true')
 args = parser.parse_args()
 
 SITEMAP_NAMESPACE = {'sitemap': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
@@ -64,6 +66,14 @@ class Scanner:
                     print('X-Powerde-By: %s' % val)
                 if (key == 'X-Debug-Token-Link'):
                     print('Debug exposed: %s' % val)
+
+        if args.ip or args.all:
+            try:
+                response = requests.get(self.host, stream=True, allow_redirects=True, headers=self.headers, verify=False)
+                ip, port = response.raw._connection.sock.getpeername()
+                print("Server IP: %s" % ip)
+            except:
+                print("Server IP is not detected")
 
         if args.login or args.all:
             response = requests.get(self.host + 'admin', allow_redirects=True, headers=self.headers, verify=False)
@@ -238,5 +248,6 @@ else:
     try:
         host = regex.search(args.host).group('host')
         s = Scanner(host, args)
-    except:
-        print("%s in not a valid host" % args.host)
+    except Exception as e:
+        if (args.verbose):
+            print("%s: %s" % (args.host, str(e)))
