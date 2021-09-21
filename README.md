@@ -40,9 +40,12 @@ python pimcore-scan -vH example.com
   -h, --help            show this help message and exit
   -a, --all             Perform all checks
   -b, --bundles         Detect installed bundles
+  -B USER:PASSWORD, --basic-auth USER:PASSWORD
+                        Use basic auth header (username:password)
   -d, --domains         Detect domains based on sitemaps
   -H, --headers         Scan response headers
   -i, --input_file      Use a list of hosts in a file instead of stdio
+  -I, --ip              Detect the ip adress of the server
   -l, --login           Check if login route is visible
   -p, --ping            Ping every entry in the sitemap and print the status
   -r, --robots          Search robots.txt
@@ -51,6 +54,7 @@ python pimcore-scan -vH example.com
   -u USER_AGENT, --user-agent USER_AGENT
                         Use custom user agent string
   -v, --version         Detect instaleld pimcore version
+  -V, --verbose         Show detailed error messages
 ```
 
 ## What does work
