@@ -185,6 +185,21 @@ class Scanner:
                 return '6.6'
             return '6.5 <= x <= 6.6'
 
+        if (self.host_has_file(self.host, 'pimcore/static6/img/logo.svg') or self.host_has_file(self.host, 'pimcore/static6/img/logo-white.svg')):
+            if (self.host_has_file(self.host, 'pimcore/static6/img/flat-color-icons/book.svg')):
+                if (self.host_has_file(self.host, 'pimcore/static6/img/flat-color-icons/warning.svg')):
+                    if (self.host_has_file(self.host, 'pimcore/static6/js/pimcore/document/newsletters/addressSourceAdapters/csvList.js')):
+                        if (self.host_has_file(self.host, 'pimcore/static6/js/pimcore/document/newsletters/addressSourceAdapters/report.js')):
+                            if (self.host_has_file(self.host, 'pimcore/static6/js/pimcore/settings/user/websiteTranslationSettings.js')):
+                                if (self.host_has_file(self.host, 'pimcore/static6/js/pimcore/object/helpers/gridCellEditor.js')):
+                                    return '4.6'
+                                return '4.5'
+                            return '4.4'
+                        return '4.3'
+                    return '4.2'
+                return '4.1'
+            return '4.0'
+
         if (self.host_has_file(self.host, 'pimcore/static6/img/logo-claim-gray.svg') or self.host_has_file(self.host, 'pimcore/static6/img/logo.svg')):
             if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/lib/jquery-3.3.1.min.js')):
                 if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/pimcore/element/workflows.js')):
@@ -198,21 +213,6 @@ class Scanner:
             if (self.host_has_file(self.host, 'pimcore/static6/js/lib/jquery-3.3.1.min.js')):
                 return '5.2 <= x <= 5.3'
             return '5.0'
-
-        if (self.host_has_file(self.host, 'pimcore/static6/img/logo.svg') or self.host_has_file(self.host, 'pimcore/static6/img/logo-white.svg')):
-            if (self.host_has_file(self.host, 'pimcore/static6/img/flat-color-icons/book.svg')):
-                if (self.host_has_file(self.host, 'pimcore/static6/img/flat-color-icons/warning.svg')):
-                    if (self.host_has_file(self.host, 'pimcore/static6/js/pimcore/document/newsletters/addressSourceAdapters/csvList.js')):
-                        if (self.host_has_file(self.host, 'pimcore/static6/js/pimcore/document/newsletters/addressSourceAdapters/report.js')):
-                            if (self.host_has_file(self.host, 'pimcore/static6/js/pimcore/settings/user/websiteTranslationSettings.js')):
-                                if (self.host_has_file(self.host, 'pimcore/static6/img/github.svg')):
-                                    return '4.6'
-                                return '4.5'
-                            return '4.4'
-                        return '4.3'
-                    return '4.2'
-                return '4.1'
-            return '4.0'
 
         if (self.host_has_file(self.host, 'pimcore/static/img/icon/web-browser_small.png')):
             if (self.host_has_file(self.host, 'pimcore/static6/swf/expressInstall.swf')):
