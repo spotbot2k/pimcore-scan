@@ -1,14 +1,15 @@
 #!/usr/bin/python
-import requests, argparse, json, os, re
+import requests, argparse, json, os, re, base64
 import xml.etree.ElementTree as xml
 
 parser = argparse.ArgumentParser(description='Simple pimcore status scanner.')
 parser.add_argument('host', help='Hostname of the target without the schema (e.g. example.com)')
 parser.add_argument('-a', '--all', help='Perform all checks', default=False, action='store_true')
 parser.add_argument('-b', '--bundles', help='Detect installed bundles', default=False, action='store_true')
+parser.add_argument('-B', '--basic-auth', help='Use basic auth header (username:password)', default=False)
 parser.add_argument('-d', '--domains', help='Detect domains based on sitemaps', default=False, action='store_true')
 parser.add_argument('-H', '--headers', help='Scan response headers', default=False, action='store_true')
-parser.add_argument('-i', '--input_file', help='Use a list of hosts in a file instead of stdio', default=False, action='store_true')
+parser.add_argument('-i', '--input-file', help='Use a list of hosts in a file instead of stdio', default=False, action='store_true')
 parser.add_argument('-I', '--ip', help='Detect the ip adress of the server', default=False, action='store_true')
 parser.add_argument('-l', '--login', help='Check if login route is visible', default=False, action='store_true')
 parser.add_argument('-p', '--ping', help='Ping every entry in the sitemap and print the status', default=False, action='store_true')
@@ -34,6 +35,9 @@ class Scanner:
             self.headers = {
                 'User-Agent': args.user_agent
             }
+
+        if args.basic_auth:
+            self.headers["Authorization"] = "Basic " + base64.b64encode(str.encode(args.basic_auth)).decode('ascii')
 
         response = requests.get(self.host, allow_redirects=True, headers=self.headers, verify=False)
         # Save the resulting URL to avoid all the redirects in future requests
