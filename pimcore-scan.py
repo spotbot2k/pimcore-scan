@@ -7,6 +7,7 @@ parser.add_argument('host', help='Hostname of the target without the schema (e.g
 parser.add_argument('-a', '--all', help='Perform all checks', default=False, action='store_true')
 parser.add_argument('-b', '--bundles', help='Detect installed bundles', default=False, action='store_true')
 parser.add_argument('-B', '--basic-auth', help='Use basic auth header (username:password)', default=False)
+parser.add_argument('-c', '--csv', help='Use csv formated output', default=False, action='store_true')
 parser.add_argument('-d', '--domains', help='Detect domains based on sitemaps', default=False, action='store_true')
 parser.add_argument('-H', '--headers', help='Scan response headers', default=False, action='store_true')
 parser.add_argument('-i', '--input-file', help='Use a list of hosts in a file instead of stdio', default=False, action='store_true')
@@ -16,6 +17,7 @@ parser.add_argument('-p', '--ping', help='Ping every entry in the sitemap and pr
 parser.add_argument('-r', '--robots', help='Search robots.txt', default=False, action='store_true')
 parser.add_argument('-s', '--status', help='Check for SSL redirect', default=False, action='store_true')
 parser.add_argument('-S', '--sitemaps', help='Find sitemap files', default=False, action='store_true')
+parser.add_argument('-t', '--timeout', help='Connection TTL', default=3, type=int)
 parser.add_argument('-u', '--user-agent', help='Use custom user agent string', default=False)
 parser.add_argument('-v', '--version', help='Detect instaleld pimcore version', default=False, action='store_true')
 parser.add_argument('-V', '--verbose', help='Show detailed error messages', default=False, action='store_true')
@@ -31,6 +33,10 @@ class Scanner:
         self.host = 'http://' + host
         self.headers = {}
 
+        self.ip = ""
+        self.ssl = ""
+        self.version = ""
+
         if args.user_agent:
             self.headers = {
                 'User-Agent': args.user_agent
@@ -39,7 +45,7 @@ class Scanner:
         if args.basic_auth:
             self.headers["Authorization"] = "Basic " + base64.b64encode(str.encode(args.basic_auth)).decode('ascii')
 
-        response = requests.get(self.host, allow_redirects=True, headers=self.headers, verify=False)
+        response = requests.get(self.host, allow_redirects=True, headers=self.headers, verify=False, timeout=args.timeout)
         # Save the resulting URL to avoid all the redirects in future requests
         if (response.request.path_url != '/'):
             self.host = response.url[:len(response.url) - len(response.request.path_url)]
@@ -53,16 +59,19 @@ class Scanner:
             if ('https' not in response.url or response.url.index('https') != 0):
                 print('WARNING: No SSL Redirection applied!')
             else:
-                print('SSL redirection is in place')
+                self.ssl = "Yes"
+                if not args.csv:
+                    print('SSL redirection is in place')
             print('Status Code: %d (%s)' % (response.status_code, response.reason))
             print('Server: %s' % response.headers.get('Server'))
 
         if args.version or args.all:
-            version = self.detect_version()
-            if version and args.all:
-                print('Detected version: %s' % version)
-            if version and args.version:
-                print(version)
+            self.version = self.detect_version()
+            if self.version and args.all:
+                print('Detected version: %s' % self.version)
+            if self.version and args.version:
+                if not args.csv:
+                    print(self.version)
 
         if args.headers or args.all:
             for key,val in response.headers.items():
@@ -73,25 +82,26 @@ class Scanner:
 
         if args.ip or args.all:
             try:
-                response = requests.get(self.host, stream=True, allow_redirects=True, headers=self.headers, verify=False)
-                ip, port = response.raw._connection.sock.getpeername()
-                print("Server IP: %s" % ip)
+                response = requests.get(self.host, stream=True, allow_redirects=True, headers=self.headers, verify=False, timeout=args.timeout)
+                self.ip , port = response.raw._connection.sock.getpeername()
+                if not args.csv:
+                    print("Server IP: %s" % self.ip)
             except:
-                print("Server IP is not detected")
+                pass
 
         if args.login or args.all:
-            response = requests.get(self.host + 'admin', allow_redirects=True, headers=self.headers, verify=False)
+            response = requests.get(self.host + 'admin', allow_redirects=True, headers=self.headers, verify=False, timeout=args.timeout)
             if ('admin/login' in response.url):
                 print('Login: /admin is detected and visible')
 
         if args.robots or args.all:
-            response = requests.get(self.host + 'robots.txt', allow_redirects=False, headers=self.headers, verify=False)
+            response = requests.get(self.host + 'robots.txt', allow_redirects=False, headers=self.headers, verify=False, timeout=args.timeout)
             if ('text/plain' in response.headers.get('Content-type')):
                 for line in response.iter_lines():
                     self.analyse_robots_line(line.decode("utf-8"))
 
         if args.domains or args.sitemaps or args.all:
-            response = requests.get(self.host + 'sitemap.xml', allow_redirects=True, headers=self.headers, verify=False)
+            response = requests.get(self.host + 'sitemap.xml', allow_redirects=True, headers=self.headers, verify=False, timeout=args.timeout)
             if (response.status_code == 200 and response.headers.get('Content-Type') == 'application/xml'):
                 sitemap = xml.fromstring(response.text)
                 sites = []
@@ -110,14 +120,14 @@ class Scanner:
                 print('No sitemap found')
 
         if args.ping:
-            response = requests.get(self.host + 'sitemap.xml', allow_redirects=True, headers=self.headers, verify=False)
+            response = requests.get(self.host + 'sitemap.xml', allow_redirects=True, headers=self.headers, verify=False, timeout=args.timeout)
             if (response.status_code == 200 and response.headers.get('Content-Type') == 'application/xml'):
                 sitemap = xml.fromstring(response.text)
                 sites = []
 
                 for child in sitemap.findall('sitemap:sitemap',SITEMAP_NAMESPACE):
                     sitemapFile = child.find('sitemap:loc',SITEMAP_NAMESPACE).text
-                    subRequest = requests.get(sitemapFile, allow_redirects=True, headers=self.headers, verify=False)
+                    subRequest = requests.get(sitemapFile, allow_redirects=True, headers=self.headers, verify=False, timeout=args.timeout)
                     if (subRequest.status_code == 200 and subRequest.headers.get('Content-Type') == 'application/xml'):
                         sitemap = xml.fromstring(subRequest.text)
                         for node in sitemap.findall('sitemap:url',SITEMAP_NAMESPACE):
@@ -135,9 +145,12 @@ class Scanner:
                         print('Bundle Detected: %s by %s, %s' % (plugin['name'], plugin['author'], plugin['url']))
                     f.close()
 
+        if args.csv:
+            print(self.get_csv_string())
+
     def host_has_file(self, host, file):
         try:
-            response = requests.get(host + file, allow_redirects=True, headers=self.headers, verify=False)
+            response = requests.get(host + file, allow_redirects=True, headers=self.headers, verify=False, timeout=args.timeout)
             if (response.status_code == 200 and file in response.url):
                 return True
             else:
@@ -146,7 +159,7 @@ class Scanner:
             return False
 
     def get_url_status_code(self, url):
-        response = requests.get(url, allow_redirects=True, headers=self.headers, verify=False)
+        response = requests.get(url, allow_redirects=True, headers=self.headers, verify=False, timeout=args.timeout)
         return response.status_code
 
     def split_robots_line(self, line):
@@ -167,10 +180,13 @@ class Scanner:
                 print('Found a sitemap in robots.txt: %s' % str)
 
     def fetch_domain_from_sitemap(self, sitemapUrl):
-        response = requests.get(sitemapUrl, allow_redirects=True, headers=self.headers, verify=False)
+        response = requests.get(sitemapUrl, allow_redirects=True, headers=self.headers, verify=False, timeout=args.timeout)
         if (response.status_code == 200 and response.headers.get('Content-Type') == 'application/xml'):
             sitemap = xml.fromstring(response.text)
-            return sitemap.find('sitemap:url',SITEMAP_NAMESPACE).find('sitemap:loc',SITEMAP_NAMESPACE).text
+            return sitemap.find('sitemap:url', SITEMAP_NAMESPACE).find('sitemap:loc', SITEMAP_NAMESPACE).text
+
+    def get_csv_string(self):
+        return ";".join([self.host, str(self.ip), str(self.ssl), str(self.version)])
 
     def detect_version(self):
         if (self.host_has_file(self.host, 'bundles/pimcoreadmin/img/login/pcx.svg')):
@@ -238,12 +254,15 @@ class Scanner:
 
 if args.input_file:
     with open(args.host,) as file:
+        if args.csv:
+            print("Host;Ip;SSL-Redirect;Version")
         for line in file:
             stripped_line = line.strip()
             regex = re.compile('(?P<schema>http[s]{0,1}:\/\/){0,1}(?P<host>[0-9a-z\.-]+)(?P<path>\/.*){0,1}')
             try:
                 host = regex.search(stripped_line).group('host')
-                print(host)
+                if not args.csv:
+                    print(host)
                 s = Scanner(host, args)
             except:
                 print("%s in not a valid host" % stripped_line)
