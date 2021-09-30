@@ -51,6 +51,7 @@ python pimcore-scan -vH example.com
   -r, --robots          Search robots.txt
   -s, --status          Check for SSL redirect
   -S, --sitemaps        Find sitemap files
+  -t, --timeout         Connection TTL
   -u USER_AGENT, --user-agent USER_AGENT
                         Use custom user agent string
   -v, --version         Detect instaleld pimcore version
