@@ -1,5 +1,6 @@
 #!/usr/bin/python
-import requests, argparse, re
+import requests, argparse, re, sys
+from concurrent.futures import thread, ThreadPoolExecutor
 from scanner import scanner
 
 parser = argparse.ArgumentParser(description='Simple pimcore status scanner.')
@@ -18,6 +19,7 @@ parser.add_argument('-r', '--robots', help='Search robots.txt', default=False, a
 parser.add_argument('-s', '--status', help='Check for SSL redirect', default=False, action='store_true')
 parser.add_argument('-S', '--sitemaps', help='Find sitemap files', default=False, action='store_true')
 parser.add_argument('-t', '--timeout', help='Connection TTL', default=3, type=int)
+parser.add_argument('-T', '--threads', help='Threads to be executed in parallel', default=1, type=int)
 parser.add_argument('-u', '--user-agent', help='Use custom user agent string', default=False)
 parser.add_argument('-v', '--version', help='Detect instaleld pimcore version', default=False, action='store_true')
 parser.add_argument('-V', '--verbose', help='Show detailed error messages', default=False, action='store_true')
@@ -25,20 +27,48 @@ args = parser.parse_args()
 
 requests.packages.urllib3.disable_warnings()
 
+def runHost(host):
+    s = scanner(host, args)
+    return s.get_csv_string()
+
 if args.input_file:
     with open(args.host,) as file:
-        if args.csv:
-            print("Host;Ip;SSL-Redirect;Version")
+        host_queue = []
+
         for line in file:
             stripped_line = line.strip()
             regex = re.compile('(?P<schema>http[s]{0,1}:\/\/){0,1}(?P<host>[0-9a-z\.-]+)(?P<path>\/.*){0,1}')
             try:
-                host = regex.search(stripped_line).group('host')
-                if not args.csv:
-                    print(host)
-                s = scanner(host, args)
-            except:
-                print("%s in not a valid host" % stripped_line)
+                host_queue.append(regex.search(stripped_line).group('host'))
+            except Exception as e:
+                if (args.verbose):
+                    print("%s: %s" % (args.host, str(e)))
+                else:
+                    print("%s in not a valid host" % stripped_line)
+
+        if args.threads > 1:
+            args.csv = True
+            print("Host;Ip;SSL-Redirect;Version")
+
+            with ThreadPoolExecutor(max_workers=args.threads) as executor:
+                futures = []
+                for host in host_queue:
+                    try:
+                        futures.append(executor.submit(runHost, host=host))
+                    except:
+                        executor._threads.clear()
+                        thread._threads_queues.clear()
+        else:
+            if (args.csv):
+                print("Host;Ip;SSL-Redirect;Version")
+            for host in host_queue:
+                try:
+                    s = scanner(host, args)
+                except KeyboardInterrupt:
+                    sys.exit()
+                except Exception as e:
+                    if (args.verbose):
+                        print("%s: %s" % (args.host, str(e)))
 else:
     regex = re.compile('(?P<schema>http[s]{0,1}:\/\/){0,1}(?P<host>[0-9a-z\.-]+)(?P<path>\/.*){0,1}')
     try:
