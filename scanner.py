@@ -128,7 +128,7 @@ class scanner:
     def host_has_file(self, host, file):
         try:
             response = requests.get(host + file, allow_redirects=True, headers=self.headers, verify=False, timeout=self.args.timeout)
-            if (response.status_code == 200 and file in response.url):
+            if (response.status_code == 200 and file in response.url and response.headers['Content-Type'].find("html") < 0):
                 return True
             else:
                 return False
