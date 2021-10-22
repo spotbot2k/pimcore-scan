@@ -44,18 +44,19 @@ class scanner:
                 self.ssl = "Yes"
                 if not args.csv:
                     print('SSL redirection is in place')
-            print('Status Code: %d (%s)' % (response.status_code, response.reason))
-            print('Server: %s' % response.headers.get('Server'))
+            if not args.csv:
+                print('Status Code: %d (%s)' % (response.status_code, response.reason))
+                print('Server: %s' % response.headers.get('Server'))
 
         if args.version or args.all:
             self.version = self.detect_version()
-            if self.version and args.all:
+            if (self.version and args.all) and not args.csv:
                 print('Detected version: %s' % self.version)
             if self.version and args.version:
                 if not args.csv:
                     print(self.version)
 
-        if args.headers or args.all:
+        if (args.headers or args.all) and not args.csv:
             for key,val in response.headers.items():
                 if (key == 'X-Powered-By'):
                     print('X-Powerde-By: %s' % val)
@@ -82,7 +83,7 @@ class scanner:
                 for line in response.iter_lines():
                     self.analyse_robots_line(line.decode("utf-8"))
 
-        if args.domains or args.sitemaps or args.all:
+        if (args.domains or args.sitemaps or args.all) and not args.csv:
             response = requests.get(self.host + 'sitemap.xml', allow_redirects=True, headers=self.headers, verify=False, timeout=args.timeout)
             if (response.status_code == 200 and response.headers.get('Content-Type') == 'application/xml'):
                 sitemap = xml.fromstring(response.text)
@@ -122,7 +123,7 @@ class scanner:
             if not args.csv:
                 print("Redirected to %s" % self.host)
 
-        if args.bundles or args.all:
+        if (args.bundles or args.all) and not args.csv:
             for file in os.listdir(self.PROJECT_ROOT + '/bundles'):
                 if file.endswith(".json"):
                     f = open(self.PROJECT_ROOT + '/bundles/' + file,)
