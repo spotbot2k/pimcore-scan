@@ -49,6 +49,7 @@ python pimcore-scan -vH example.com
   -l, --login           Check if login route is visible
   -p, --ping            Ping every entry in the sitemap and print the status
   -r, --robots          Search robots.txt
+  -R, --redirects       Detect and display domain redirection
   -s, --status          Check for SSL redirect
   -S, --sitemaps        Find sitemap files
   -t, --timeout         Connection TTL
