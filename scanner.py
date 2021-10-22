@@ -1,4 +1,4 @@
-import requests, json, os, base64
+import requests, json, os, base64, re
 import xml.etree.ElementTree as xml
 
 class scanner:
@@ -13,6 +13,8 @@ class scanner:
         self.ip = ""
         self.ssl = ""
         self.version = ""
+        self.redirected = False
+        self.originalHost = ""
 
         if args.user_agent:
             self.headers = {
@@ -23,13 +25,16 @@ class scanner:
             self.headers["Authorization"] = "Basic " + base64.b64encode(str.encode(args.basic_auth)).decode('ascii')
 
         response = requests.get(self.host, allow_redirects=True, headers=self.headers, verify=False, timeout=args.timeout)
+        self.redirected = not bool(self.compare_hosts(self.host, response.url))
+        self.originalHost = self.host
+
         # Save the resulting URL to avoid all the redirects in future requests
-        if (response.request.path_url != '/'):
+        if response.request.path_url != '/':
             self.host = response.url[:len(response.url) - len(response.request.path_url)]
         else:
-            self.host= response.url
+            self.host = response.url
 
-        if (self.host[-1] != '/'):
+        if self.host[-1] != '/':
             self.host += '/'
 
         if args.status or args.all:
@@ -113,6 +118,10 @@ class scanner:
                             if (statusCode != 200):
                                 print("%d;%s" % (statusCode, url))
 
+        if  self.redirected and args.redirects or args.all:
+            if not args.csv:
+                print("Redirected to %s" % self.host)
+
         if args.bundles or args.all:
             for file in os.listdir(self.PROJECT_ROOT + '/bundles'):
                 if file.endswith(".json"):
@@ -134,6 +143,13 @@ class scanner:
                 return False
         except:
             return False
+
+    def compare_hosts(self, request_url, response_url):
+        regex = re.compile('(?P<schema>http[s]{0,1}:\/\/){0,1}(?P<host>[0-9a-z\.-]+)(?P<path>\/.*){0,1}')
+        request_host = regex.search(request_url).group('host')
+        server_host = regex.search(response_url).group('host')
+
+        return bool(request_host == server_host)
 
     def get_url_status_code(self, url):
         response = requests.get(url, allow_redirects=True, headers=self.headers, verify=False, timeout=self.args.timeout)
@@ -163,7 +179,7 @@ class scanner:
             return sitemap.find('sitemap:url', self.SITEMAP_NAMESPACE).find('sitemap:loc', self.SITEMAP_NAMESPACE).text
 
     def get_csv_string(self):
-        return ";".join([self.host, str(self.ip), str(self.ssl), str(self.version)])
+        return ";".join([self.host, str(self.originalHost), str(self.ip), str(self.ssl), str(self.version)])
 
     def detect_version(self):
         if (self.host_has_file(self.host, 'bundles/pimcoreadmin/img/login/pcx.svg')):

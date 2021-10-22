@@ -16,6 +16,7 @@ parser.add_argument('-I', '--ip', help='Detect the ip adress of the server', def
 parser.add_argument('-l', '--login', help='Check if login route is visible', default=False, action='store_true')
 parser.add_argument('-p', '--ping', help='Ping every entry in the sitemap and print the status', default=False, action='store_true')
 parser.add_argument('-r', '--robots', help='Search robots.txt', default=False, action='store_true')
+parser.add_argument('-R', '--redirects', help='Detect host redirection', default=False, action='store_true')
 parser.add_argument('-s', '--status', help='Check for SSL redirect', default=False, action='store_true')
 parser.add_argument('-S', '--sitemaps', help='Find sitemap files', default=False, action='store_true')
 parser.add_argument('-t', '--timeout', help='Connection TTL', default=3, type=int)
@@ -60,7 +61,7 @@ if args.input_file:
                         thread._threads_queues.clear()
         else:
             if (args.csv):
-                print("Host;Ip;SSL-Redirect;Version")
+                print("Host;Redirected From;Ip;SSL-Redirect;Version")
             for host in host_queue:
                 try:
                     s = scanner(host, args)
@@ -73,6 +74,8 @@ else:
     regex = re.compile('(?P<schema>http[s]{0,1}:\/\/){0,1}(?P<host>[0-9a-z\.-]+)(?P<path>\/.*){0,1}')
     try:
         host = regex.search(args.host).group('host')
+        if (args.csv):
+            print("Host;Redirected From;Ip;SSL-Redirect;Version")
         s = scanner(host, args)
     except Exception as e:
         if (args.verbose):
