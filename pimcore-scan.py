@@ -45,7 +45,7 @@ if args.input_file:
                 if (args.verbose):
                     print("%s: %s" % (args.host, str(e)))
                 else:
-                    print("%s in not a valid host" % stripped_line)
+                    print("%s is not a valid host" % stripped_line)
 
         if args.threads > 1:
             args.csv = True

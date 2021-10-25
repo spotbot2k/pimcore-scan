@@ -71,7 +71,7 @@ class scanner:
             except:
                 pass
 
-        if args.login or args.all:
+        if (args.login or args.all) and not args.csv:
             response = requests.get(self.host + 'admin', allow_redirects=True, headers=self.headers, verify=False, timeout=args.timeout)
             if ('admin/login' in response.url):
                 print('Login: /admin is detected and visible')
