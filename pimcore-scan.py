@@ -49,7 +49,7 @@ if args.input_file:
 
         if args.threads > 1:
             args.csv = True
-            print("Host;Ip;SSL-Redirect;Version")
+            print(scanner.CSV_HEADER)
 
             with ThreadPoolExecutor(max_workers=args.threads) as executor:
                 futures = []
@@ -61,7 +61,7 @@ if args.input_file:
                         thread._threads_queues.clear()
         else:
             if (args.csv):
-                print("Host;Redirected From;Ip;SSL-Redirect;Version")
+                print(scanner.CSV_HEADER)
             for host in host_queue:
                 try:
                     s = scanner(host, args)
@@ -75,7 +75,7 @@ else:
     try:
         host = regex.search(args.host).group('host')
         if (args.csv):
-            print("Host;Redirected From;Ip;SSL-Redirect;Version")
+            print(scanner.CSV_HEADER)
         s = scanner(host, args)
     except Exception as e:
         if (args.verbose):

@@ -5,6 +5,7 @@ class scanner:
 
     SITEMAP_NAMESPACE = {'sitemap': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
     PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
+    CSV_HEADER = "Host;Redirected From;Ip;SSL-Redirect;Version"
 
     def __init__(self, host, args):
         self.args = args
