@@ -26,7 +26,7 @@ class scanner:
 
         response = requests.get(self.host, allow_redirects=True, headers=self.headers, verify=False, timeout=args.timeout)
         self.redirected = not bool(self.compare_hosts(self.host, response.url))
-        self.originalHost = self.host
+        self.originalHost = self.host if self.redirected else ""
 
         # Save the resulting URL to avoid all the redirects in future requests
         if response.request.path_url != '/':
@@ -38,9 +38,7 @@ class scanner:
             self.host += '/'
 
         if args.status or args.all:
-            if ('https' not in response.url or response.url.index('https') != 0):
-                print('WARNING: No SSL Redirection applied!')
-            else:
+            if ('https' in response.url or response.url.find('https') == 0):
                 self.ssl = "Yes"
                 if not args.csv:
                     print('SSL redirection is in place')
@@ -77,7 +75,7 @@ class scanner:
             if ('admin/login' in response.url):
                 print('Login: /admin is detected and visible')
 
-        if args.robots or args.all:
+        if (args.robots or args.all) and not args.csv:
             response = requests.get(self.host + 'robots.txt', allow_redirects=False, headers=self.headers, verify=False, timeout=args.timeout)
             if ('text/plain' in response.headers.get('Content-type')):
                 for line in response.iter_lines():
@@ -148,9 +146,9 @@ class scanner:
     def compare_hosts(self, request_url, response_url):
         regex = re.compile('(?P<schema>http[s]{0,1}:\/\/){0,1}(?P<host>[0-9a-z\.-]+)(?P<path>\/.*){0,1}')
         request_host = regex.search(request_url).group('host')
-        server_host = regex.search(response_url).group('host')
+        response_host = regex.search(response_url).group('host')
 
-        return bool(request_host == server_host)
+        return bool(request_host == response_host)
 
     def get_url_status_code(self, url):
         response = requests.get(url, allow_redirects=True, headers=self.headers, verify=False, timeout=self.args.timeout)
