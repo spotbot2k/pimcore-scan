@@ -44,7 +44,7 @@ if args.input_file:
             except Exception as e:
                 if (args.verbose):
                     print("%s: %s" % (args.host, str(e)))
-                else:
+                elif not args.csv:
                     print("%s is not a valid host" % stripped_line)
 
         if args.threads > 1:

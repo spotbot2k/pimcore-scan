@@ -137,7 +137,10 @@ class scanner:
     def host_has_file(self, host, file):
         try:
             response = requests.get(host + file, allow_redirects=True, headers=self.headers, verify=False, timeout=self.args.timeout)
-            if (response.status_code == 200 and file in response.url and response.headers['Content-Type'].find("html") < 0):
+            if response.status_code == 200 \
+                and file in response.url \
+                and response.headers['Content-Type'].find("html") < 0 \
+                and (not 'Server' in response.headers or response.headers['Server'].find('nginx') >= 0 or response.headers['Server'].find('Apache') >= 0):
                 return True
             else:
                 return False
