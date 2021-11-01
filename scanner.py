@@ -1,4 +1,4 @@
-import requests, json, os, base64, re
+import requests, json, os, base64, re, time
 import xml.etree.ElementTree as xml
 
 class scanner:
@@ -135,6 +135,7 @@ class scanner:
             print(self.get_csv_string())
 
     def host_has_file(self, host, file):
+        time.sleep(self.args.pause)
         try:
             response = requests.get(host + file, allow_redirects=True, headers=self.headers, verify=False, timeout=self.args.timeout)
             if response.status_code == 200 \

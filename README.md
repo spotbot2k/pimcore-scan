@@ -48,6 +48,7 @@ python pimcore-scan -vH example.com
   -I, --ip              Detect the ip adress of the server
   -l, --login           Check if login route is visible
   -p, --ping            Ping every entry in the sitemap and print the status
+  -P, --pause           Pause between connections
   -r, --robots          Search robots.txt
   -R, --redirects       Detect and display domain redirection
   -s, --status          Check for SSL redirect

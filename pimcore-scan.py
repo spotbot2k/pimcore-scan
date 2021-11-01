@@ -15,6 +15,7 @@ parser.add_argument('-i', '--input-file', help='Use a list of hosts in a file in
 parser.add_argument('-I', '--ip', help='Detect the ip adress of the server', default=False, action='store_true')
 parser.add_argument('-l', '--login', help='Check if login route is visible', default=False, action='store_true')
 parser.add_argument('-p', '--ping', help='Ping every entry in the sitemap and print the status', default=False, action='store_true')
+parser.add_argument('-P', '--pause', help='Pause between connections', default=0.05, type=float)
 parser.add_argument('-r', '--robots', help='Search robots.txt', default=False, action='store_true')
 parser.add_argument('-R', '--redirects', help='Detect host redirection', default=False, action='store_true')
 parser.add_argument('-s', '--status', help='Check for SSL redirect', default=False, action='store_true')
