@@ -48,7 +48,10 @@ class scanner:
                 print('Server: %s' % response.headers.get('Server'))
 
         if args.version or args.all:
-            self.version = self.detect_version()
+            if args.fast:
+                self.version = self.detect_major_version()
+            else: 
+                self.version = self.detect_version()
             if (self.version and args.all) and not args.csv:
                 print('Detected version: %s' % self.version)
             if self.version and args.version:
@@ -248,3 +251,16 @@ class scanner:
 
         if (self.host_has_file(self.host, 'pimcore/static/img/login/logo.png')):
             return '2'
+
+    def detect_major_version(self):
+        if (self.host_has_file(self.host, 'bundles/pimcoreadmin/img/login/pcx.svg')):
+            return '10'
+
+        if (self.host_has_file(self.host, 'bundles/pimcoreadmin/img/login/pimconaut-world.svg')):
+            return '6'
+
+        if (self.host_has_file(self.host, 'pimcore/static6/img/filetype-not-supported.svg')):
+            return '5'
+
+        if (self.host_has_file(self.host, 'pimcore/static6/img/logo.svg')):
+            return '4'
