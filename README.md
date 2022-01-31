@@ -43,6 +43,7 @@ python pimcore-scan -vH example.com
   -B USER:PASSWORD, --basic-auth USER:PASSWORD
                         Use basic auth header (username:password)
   -d, --domains         Detect domains based on sitemaps
+  -f, --fast            Use fast version scan (major only)
   -H, --headers         Scan response headers
   -i, --input_file      Use a list of hosts in a file instead of stdio
   -I, --ip              Detect the ip adress of the server

@@ -10,6 +10,7 @@ parser.add_argument('-b', '--bundles', help='Detect installed bundles', default=
 parser.add_argument('-B', '--basic-auth', help='Use basic auth header (username:password)', default=False)
 parser.add_argument('-c', '--csv', help='Use csv formated output', default=False, action='store_true')
 parser.add_argument('-d', '--domains', help='Detect domains based on sitemaps', default=False, action='store_true')
+parser.add_argument('-f', '--fast', help='Use fast version scan (major only)', default=False, action='store_true')
 parser.add_argument('-H', '--headers', help='Scan response headers', default=False, action='store_true')
 parser.add_argument('-i', '--input-file', help='Use a list of hosts in a file instead of stdio', default=False, action='store_true')
 parser.add_argument('-I', '--ip', help='Detect the ip adress of the server', default=False, action='store_true')
