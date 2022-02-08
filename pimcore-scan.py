@@ -1,4 +1,5 @@
 #!/usr/bin/python
+from pickle import FALSE
 import requests, argparse, re, sys
 from concurrent.futures import thread, ThreadPoolExecutor
 from scanner import scanner
@@ -26,6 +27,7 @@ parser.add_argument('-T', '--threads', help='Threads to be executed in parallel'
 parser.add_argument('-u', '--user-agent', help='Use custom user agent string', default=False)
 parser.add_argument('-v', '--version', help='Detect instaleld pimcore version', default=False, action='store_true')
 parser.add_argument('-V', '--verbose', help='Show detailed error messages', default=False, action='store_true')
+parser.add_argument('--guess-cms', help='Try to detect CMS', default=False, action='store_true')
 args = parser.parse_args()
 
 requests.packages.urllib3.disable_warnings()

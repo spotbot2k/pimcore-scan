@@ -59,6 +59,8 @@ python pimcore-scan -vH example.com
                         Use custom user agent string
   -v, --version         Detect instaleld pimcore version
   -V, --verbose         Show detailed error messages
+
+  --guess-cms           Try to guess CMS used
 ```
 
 ## What does work

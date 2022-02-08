@@ -50,7 +50,7 @@ class scanner:
         if args.version or args.all:
             if args.fast:
                 self.version = self.detect_major_version()
-            else: 
+            else:
                 self.version = self.detect_version()
             if (self.version and args.all) and not args.csv:
                 print('Detected version: %s' % self.version)
@@ -103,6 +103,27 @@ class scanner:
                         print(domain)
             else:
                 print('No sitemap found')
+
+        if (args.guess_cms):
+            # Detect Typo3
+            response = requests.get(self.host + 'typo3', allow_redirects=False, headers=self.headers, verify=False, timeout=args.timeout)
+            if ('typo3' in response.url and response.status_code == 301):
+                if (args.csv):
+                    self.version = 'Typo3'
+                else:
+                    print('%s uses Typo3' % self.host)
+
+                pass
+
+            # Detect Contao
+            response = requests.get(self.host + 'contao', allow_redirects=False, headers=self.headers, verify=False, timeout=args.timeout)
+            if ('contao' in response.url and response.status_code == 302):
+                if (args.csv):
+                    self.version = 'Contao'
+                else:
+                    print('%s uses Contao' % self.host)
+
+                pass
 
         if args.ping:
             response = requests.get(self.host + 'sitemap.xml', allow_redirects=True, headers=self.headers, verify=False, timeout=args.timeout)
