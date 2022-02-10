@@ -125,6 +125,26 @@ class scanner:
 
                 pass
 
+            # Detect Wordpress
+            response = requests.get(self.host + 'wp-admin/', allow_redirects=True, headers=self.headers, verify=False, timeout=args.timeout)
+            if ('wp-login' in response.url and response.status_code == 200):
+                if (args.csv):
+                    self.version = 'Wordpress'
+                else:
+                    print('%s uses Wordpress' % self.host)
+
+                pass
+
+            # Detect Drupal
+            response = requests.get(self.host + '?q=user%2Flogin', allow_redirects=False, headers=self.headers, verify=False, timeout=args.timeout)
+            if ('login' in response.url and response.status_code == 301):
+                if (args.csv):
+                    self.version = 'Drupal'
+                else:
+                    print('%s uses Drupal' % self.host)
+
+                pass
+
         if args.ping:
             response = requests.get(self.host + 'sitemap.xml', allow_redirects=True, headers=self.headers, verify=False, timeout=args.timeout)
             if (response.status_code == 200 and response.headers.get('Content-Type') == 'application/xml'):
