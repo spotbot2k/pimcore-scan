@@ -112,7 +112,6 @@ class scanner:
                     self.version = 'Typo3'
                 else:
                     print('%s uses Typo3' % self.host)
-
                 pass
 
             # Detect Contao
@@ -122,7 +121,6 @@ class scanner:
                     self.version = 'Contao'
                 else:
                     print('%s uses Contao' % self.host)
-
                 pass
 
             # Detect Wordpress
@@ -132,7 +130,6 @@ class scanner:
                     self.version = 'Wordpress'
                 else:
                     print('%s uses Wordpress' % self.host)
-
                 pass
 
             # Detect Drupal
@@ -142,7 +139,15 @@ class scanner:
                     self.version = 'Drupal'
                 else:
                     print('%s uses Drupal' % self.host)
+                pass
 
+            # Detect Neos
+            response = requests.get(self.host + 'neos', allow_redirects=False, headers=self.headers, verify=False, timeout=args.timeout)
+            if ('neos' in response.url and response.status_code == 303):
+                if (args.csv):
+                    self.version = 'Neos'
+                else:
+                    print('%s uses Neos' % self.host)
                 pass
 
         if args.ping:
@@ -162,7 +167,7 @@ class scanner:
                             if (statusCode != 200):
                                 print("%d;%s" % (statusCode, url))
 
-        if  self.redirected and args.redirects or args.all:
+        if self.redirected and args.redirects or args.all:
             if not args.csv:
                 print("Redirected to %s" % self.host)
 
