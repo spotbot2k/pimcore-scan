@@ -1,0 +1,6 @@
+{
+    "author": "DACHCOM.DIGITAL Stefan Hagspiel (http://www.dachcom.com/)",
+    "name": "Dynamic Search",
+    "path": "bundles/dynamicsearch/js/backend/startup.js",
+    "url": "https://github.com/dachcom-digital/pimcore-dynamic-search"
+}
