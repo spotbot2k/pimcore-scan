@@ -238,6 +238,8 @@ class scanner:
         if (self.host_has_file(self.host, 'bundles/pimcoreadmin/img/login/pcx.svg')):
             if (self.host_has_file(self.host, 'bundles/pimcoreadmin/img/flat-color-icons/static_page.svg')):
                 return '10.1'
+            if (self.host_has_file(self.host, 'bundles/pimcoreadmin/img/flat-color-icons/lock-gray.svg')):
+                return '10.4'
             return '10.0'
 
         if (self.host_has_file(self.host, 'bundles/pimcoreadmin/img/login/pimconaut-world.svg')):
