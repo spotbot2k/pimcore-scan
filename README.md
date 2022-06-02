@@ -39,6 +39,7 @@ python pimcore-scan -vH example.com
 ``` bash
   -h, --help            show this help message and exit
   -a, --all             Perform all checks
+  -A, --average-time    Measure average response time
   -b, --bundles         Detect installed bundles
   -B USER:PASSWORD, --basic-auth USER:PASSWORD
                         Use basic auth header (username:password)

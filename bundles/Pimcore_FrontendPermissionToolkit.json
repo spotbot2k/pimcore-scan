@@ -1,6 +1,6 @@
 {
     "author": "Pimcore GmbH (http://www.pimcore.org)",
-    "name": "FrontendPermissionToolkit",
+    "name": "Frontend Permission Toolkit",
     "path": "bundles/frontendpermissiontoolkit/js/startup.js",
     "url": "https://github.com/pimcore/frontend-permission-toolkit"
 }

@@ -1,3 +1,4 @@
+from numpy import average
 import requests, json, os, base64, re, time
 import xml.etree.ElementTree as xml
 
@@ -5,9 +6,11 @@ class scanner:
 
     SITEMAP_NAMESPACE = {'sitemap': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
     PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
-    CSV_HEADER = "Host;Redirected From;Ip;SSL-Redirect;Version"
+    CSV_HEADER = "Host;Redirected From;Ip;SSL-Redirect;Version;Avg Response (ms)"
 
     def __init__(self, host, args):
+        self.requestCounter = 0
+        self.responseTimeTotal = 0
         self.args = args
         self.host = 'http://' + host
         self.headers = {}
@@ -180,6 +183,9 @@ class scanner:
                         print('Bundle Detected: %s by %s, %s' % (plugin['name'], plugin['author'], plugin['url']))
                     f.close()
 
+        if (args.average_time or args.all)  and not args.csv:
+            print('Average response time: %d ms' % (self.get_average_response_time()))
+
         if args.csv:
             print(self.get_csv_string())
 
@@ -191,6 +197,10 @@ class scanner:
                 and file in response.url \
                 and response.headers['Content-Type'].find("html") < 0 \
                 and (not 'Server' in response.headers or response.headers['Server'].find('nginx') >= 0 or response.headers['Server'].find('Apache') >= 0):
+
+                self.responseTimeTotal += response.elapsed.microseconds
+                self.requestCounter += 1
+
                 return True
             else:
                 return False
@@ -215,6 +225,11 @@ class scanner:
         else:
             return False
 
+    def get_average_response_time(self):
+        if self.requestCounter > 0 and self.responseTimeTotal > 0:
+            return round(self.responseTimeTotal / self.requestCounter / 1000)
+        return 'unknown'
+
     def analyse_robots_line(self, line):
         if ('Disallow' in line):
             str = self.split_robots_line(line)
@@ -232,7 +247,7 @@ class scanner:
             return sitemap.find('sitemap:url', self.SITEMAP_NAMESPACE).find('sitemap:loc', self.SITEMAP_NAMESPACE).text
 
     def get_csv_string(self):
-        return ";".join([self.host, str(self.originalHost), str(self.ip), str(self.ssl), str(self.version)])
+        return ";".join([self.host, str(self.originalHost), str(self.ip), str(self.ssl), str(self.version), str(self.get_average_response_time())])
 
     def detect_version(self):
         if (self.host_has_file(self.host, 'bundles/pimcoreadmin/img/login/pcx.svg')):

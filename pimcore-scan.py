@@ -7,6 +7,7 @@ from scanner import scanner
 parser = argparse.ArgumentParser(description='Simple pimcore status scanner.')
 parser.add_argument('host', help='Hostname of the target without the schema (e.g. example.com)')
 parser.add_argument('-a', '--all', help='Perform all checks', default=False, action='store_true')
+parser.add_argument('-A', '--average-time', help='Measure average response time', default=False, action='store_true')
 parser.add_argument('-b', '--bundles', help='Detect installed bundles', default=False, action='store_true')
 parser.add_argument('-B', '--basic-auth', help='Use basic auth header (username:password)', default=False)
 parser.add_argument('-c', '--csv', help='Use csv formated output', default=False, action='store_true')
