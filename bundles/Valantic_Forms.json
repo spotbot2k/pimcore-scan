@@ -1,0 +1,6 @@
+{
+    "author": "valantic GmbH (https://www.valantic.com/)",
+    "name": "Pimcore Forms",
+    "path": "bundles/valanticpimcoreforms/js/pimcore/startup.js",
+    "url": "https://github.com/valantic/pimcore-forms"
+}
