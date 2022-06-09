@@ -278,7 +278,7 @@ class scanner:
                 return '6.6'
             return '6.5 <= x <= 6.6'
 
-        if (self.host_has_file(self.host, 'pimcore/static6/img/logo.svg') or self.host_has_file(self.host, 'pimcore/static6/img/logo-white.svg')):
+        if (self.host_has_file(self.host, 'pimcore/static6/img/logo-white.svg')):
             if (self.host_has_file(self.host, 'pimcore/static6/img/flat-color-icons/book.svg')):
                 if (self.host_has_file(self.host, 'pimcore/static6/img/flat-color-icons/warning.svg')):
                     if (self.host_has_file(self.host, 'pimcore/static6/js/pimcore/document/newsletters/addressSourceAdapters/csvList.js')):
@@ -293,7 +293,7 @@ class scanner:
                 return '4.1'
             return '4.0'
 
-        if (self.host_has_file(self.host, 'pimcore/static6/img/logo-claim-gray.svg') or self.host_has_file(self.host, 'pimcore/static6/img/logo.svg')):
+        if (self.host_has_file(self.host, 'bundles/pimcoreadmin/img/logo.svg') or self.host_has_file(self.host, 'pimcore/static6/img/logo.svg')):
             if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/lib/jquery-3.3.1.min.js')):
                 if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/pimcore/element/workflows.js')):
                     if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/pimcore/object/gridcolumn/operator/Iterator.js')):
@@ -303,7 +303,7 @@ class scanner:
                             return '5.7'
                     return '5.6'
                 return '5.4'
-            if (self.host_has_file(self.host, 'pimcore/static6/js/lib/jquery-3.3.1.min.js')):
+            if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/lib/jquery-3.3.1.min.js')):
                 return '5.2 <= x <= 5.3'
             return '5.0'
 
@@ -322,7 +322,7 @@ class scanner:
         if (self.host_has_file(self.host, 'bundles/pimcoreadmin/img/login/pimconaut-world.svg')):
             return '6'
 
-        if (self.host_has_file(self.host, 'pimcore/static6/img/filetype-not-supported.svg')):
+        if (self.host_has_file(self.host, 'bundles/pimcoreadmin/img/logo.svg')):
             return '5'
 
         if (self.host_has_file(self.host, 'pimcore/static6/img/logo.svg')):
