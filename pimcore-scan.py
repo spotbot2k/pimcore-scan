@@ -45,12 +45,12 @@ if args.input_file:
             stripped_line = line.strip()
             regex = re.compile('(?P<schema>http[s]{0,1}:\/\/){0,1}(?P<host>[0-9a-z\.-]+)(?P<path>\/.*){0,1}')
             try:
-                host_queue.append(regex.search(stripped_line).group('host'))
+                host_queue.append(regex.search(stripped_line)['host'])
             except Exception as e:
-                if (args.verbose):
-                    print("%s: %s" % (args.host, str(e)))
+                if args.verbose:
+                    print(f"{args.host}: {str(e)}")
                 elif not args.csv:
-                    print("%s is not a valid host" % stripped_line)
+                    print(f"{stripped_line} is not a valid host")
 
         if args.threads > 1:
             args.csv = True
@@ -73,15 +73,15 @@ if args.input_file:
                 except KeyboardInterrupt:
                     sys.exit()
                 except Exception as e:
-                    if (args.verbose):
-                        print("%s: %s" % (args.host, str(e)))
+                    if args.verbose:
+                        print(f"{args.host}: {str(e)}")
 else:
     regex = re.compile('(?P<schema>http[s]{0,1}:\/\/){0,1}(?P<host>[0-9a-z\.-]+)(?P<path>\/.*){0,1}')
     try:
-        host = regex.search(args.host).group('host')
+        host = regex.search(args.host)['host']
         if (args.csv):
             print(scanner.CSV_HEADER)
         s = scanner(host, args)
     except Exception as e:
-        if (args.verbose):
-            print("%s: %s" % (args.host, str(e)))
+        if args.verbose:
+            print(f"{args.host}: {str(e)}")
