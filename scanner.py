@@ -1,10 +1,15 @@
-from numpy import average
-import requests, json, os, base64, re, time
+import base64
+import json
+import os
+import re
+import time
 import xml.etree.ElementTree as xml
 
-class scanner:
+import requests
 
-    SITEMAP_NAMESPACE = {'sitemap': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
+
+class scanner:
+    SITEMAP_NAMESPACE = {"sitemap": "http://www.sitemaps.org/schemas/sitemap/0.9"}
     PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
     CSV_HEADER = "Host;Redirected From;Ip;SSL-Redirect;Version;Avg Response (ms)"
 
@@ -12,7 +17,7 @@ class scanner:
         self.requestCounter = 0
         self.responseTimeTotal = 0
         self.args = args
-        self.host = 'http://' + host
+        self.host = "http://" + host
         self.headers = {}
         self.ip = ""
         self.ssl = ""
@@ -21,34 +26,42 @@ class scanner:
         self.originalHost = ""
 
         if args.user_agent:
-            self.headers = {
-                'User-Agent': args.user_agent
-            }
+            self.headers = {"User-Agent": args.user_agent}
 
         if args.basic_auth:
-            self.headers["Authorization"] = "Basic " + base64.b64encode(str.encode(args.basic_auth)).decode('ascii')
+            self.headers["Authorization"] = "Basic " + base64.b64encode(
+                str.encode(args.basic_auth)
+            ).decode("ascii")
 
-        response = requests.get(self.host, allow_redirects=True, headers=self.headers, verify=False, timeout=args.timeout)
+        response = requests.get(
+            self.host,
+            allow_redirects=True,
+            headers=self.headers,
+            verify=False,
+            timeout=args.timeout,
+        )
         self.redirected = not bool(self.compare_hosts(self.host, response.url))
         self.originalHost = self.host if self.redirected else ""
 
         # Save the resulting URL to avoid all the redirects in future requests
-        if response.request.path_url != '/':
-            self.host = response.url[:len(response.url) - len(response.request.path_url)]
+        if response.request.path_url != "/":
+            self.host = response.url[
+                : len(response.url) - len(response.request.path_url)
+            ]
         else:
             self.host = response.url
 
-        if self.host[-1] != '/':
-            self.host += '/'
+        if self.host[-1] != "/":
+            self.host += "/"
 
         if args.status or args.all:
-            if ('https' in response.url or response.url.find('https') == 0):
+            if "https" in response.url or response.url.find("https") == 0:
                 self.ssl = "Yes"
                 if not args.csv:
-                    print('SSL redirection is in place')
+                    print("SSL redirection is in place")
             if not args.csv:
-                print('Status Code: %d (%s)' % (response.status_code, response.reason))
-                print('Server: %s' % response.headers.get('Server'))
+                print("Status Code: %d (%s)" % (response.status_code, response.reason))
+                print("Server: %s" % response.headers.get("Server"))
 
         if args.version or args.all:
             if args.fast:
@@ -56,118 +69,196 @@ class scanner:
             else:
                 self.version = self.detect_version()
             if (self.version and args.all) and not args.csv:
-                print('Detected version: %s' % self.version)
+                print("Detected version: %s" % self.version)
             if self.version and args.version:
                 if not args.csv:
                     print(self.version)
 
         if (args.headers or args.all) and not args.csv:
-            for key,val in response.headers.items():
-                if (key == 'X-Powered-By'):
-                    print('X-Powerde-By: %s' % val)
-                if (key == 'X-Debug-Token-Link'):
-                    print('Debug exposed: %s' % val)
+            for key, val in response.headers.items():
+                if key == "X-Powered-By":
+                    print("X-Powerde-By: %s" % val)
+                if key == "X-Debug-Token-Link":
+                    print("Debug exposed: %s" % val)
 
         if args.ip or args.all:
             try:
-                response = requests.get(self.host, stream=True, allow_redirects=True, headers=self.headers, verify=False, timeout=args.timeout)
-                self.ip , port = response.raw._connection.sock.getpeername()
+                response = requests.get(
+                    self.host,
+                    stream=True,
+                    allow_redirects=True,
+                    headers=self.headers,
+                    verify=False,
+                    timeout=args.timeout,
+                )
+                self.ip, port = response.raw._connection.sock.getpeername()
                 if not args.csv:
                     print("Server IP: %s" % self.ip)
             except:
                 pass
 
         if (args.login or args.all) and not args.csv:
-            response = requests.get(self.host + 'admin', allow_redirects=True, headers=self.headers, verify=False, timeout=args.timeout)
-            if ('admin/login' in response.url):
-                print('Login: /admin is detected and visible')
+            response = requests.get(
+                self.host + "admin",
+                allow_redirects=True,
+                headers=self.headers,
+                verify=False,
+                timeout=args.timeout,
+            )
+            if "admin/login" in response.url:
+                print("Login: /admin is detected and visible")
 
         if (args.robots or args.all) and not args.csv:
-            response = requests.get(self.host + 'robots.txt', allow_redirects=False, headers=self.headers, verify=False, timeout=args.timeout)
-            if ('text/plain' in response.headers.get('Content-type')):
+            response = requests.get(
+                self.host + "robots.txt",
+                allow_redirects=False,
+                headers=self.headers,
+                verify=False,
+                timeout=args.timeout,
+            )
+            if "text/plain" in response.headers.get("Content-type"):
                 for line in response.iter_lines():
                     self.analyse_robots_line(line.decode("utf-8"))
 
         if (args.domains or args.sitemaps or args.all) and not args.csv:
-            response = requests.get(self.host + 'sitemap.xml', allow_redirects=True, headers=self.headers, verify=False, timeout=args.timeout)
-            if (response.status_code == 200 and response.headers.get('Content-Type') == 'application/xml'):
+            response = requests.get(
+                self.host + "sitemap.xml",
+                allow_redirects=True,
+                headers=self.headers,
+                verify=False,
+                timeout=args.timeout,
+            )
+            if (
+                response.status_code == 200
+                and response.headers.get("Content-Type") == "application/xml"
+            ):
                 sitemap = xml.fromstring(response.text)
                 sites = []
 
-                for child in sitemap.findall('sitemap:sitemap', self.SITEMAP_NAMESPACE):
-                    sitemapFile = child.find('sitemap:loc', self.SITEMAP_NAMESPACE).text
+                for child in sitemap.findall("sitemap:sitemap", self.SITEMAP_NAMESPACE):
+                    sitemapFile = child.find("sitemap:loc", self.SITEMAP_NAMESPACE).text
                     if args.sitemaps or args.all:
                         print(sitemapFile)
-                    if ('site_' in sitemapFile):
+                    if "site_" in sitemapFile:
                         sites.append(sitemapFile)
                 for sitemapFile in sites:
                     domain = self.fetch_domain_from_sitemap(sitemapFile)
                     if isinstance(domain, str) and (args.domains or args.all):
                         print(domain)
             else:
-                print('No sitemap found')
+                print("No sitemap found")
 
-        if (args.guess_cms):
+        if args.guess_cms:
             # Detect Typo3
-            response = requests.get(self.host + 'typo3', allow_redirects=False, headers=self.headers, verify=False, timeout=args.timeout)
-            if ('typo3' in response.url and response.status_code == 301):
-                if (args.csv):
-                    self.version = 'Typo3'
+            response = requests.get(
+                self.host + "typo3",
+                allow_redirects=False,
+                headers=self.headers,
+                verify=False,
+                timeout=args.timeout,
+            )
+            if "typo3" in response.url and response.status_code == 301:
+                if args.csv:
+                    self.version = "Typo3"
                 else:
-                    print('%s uses Typo3' % self.host)
+                    print("%s uses Typo3" % self.host)
                 pass
 
             # Detect Contao
-            response = requests.get(self.host + 'contao', allow_redirects=False, headers=self.headers, verify=False, timeout=args.timeout)
-            if ('contao' in response.url and response.status_code == 302):
-                if (args.csv):
-                    self.version = 'Contao'
+            response = requests.get(
+                self.host + "contao",
+                allow_redirects=False,
+                headers=self.headers,
+                verify=False,
+                timeout=args.timeout,
+            )
+            if "contao" in response.url and response.status_code == 302:
+                if args.csv:
+                    self.version = "Contao"
                 else:
-                    print('%s uses Contao' % self.host)
+                    print("%s uses Contao" % self.host)
                 pass
 
             # Detect Wordpress
-            response = requests.get(self.host + 'wp-admin/', allow_redirects=True, headers=self.headers, verify=False, timeout=args.timeout)
-            if ('wp-login' in response.url and response.status_code == 200):
-                if (args.csv):
-                    self.version = 'Wordpress'
+            response = requests.get(
+                self.host + "wp-admin/",
+                allow_redirects=True,
+                headers=self.headers,
+                verify=False,
+                timeout=args.timeout,
+            )
+            if "wp-login" in response.url and response.status_code == 200:
+                if args.csv:
+                    self.version = "Wordpress"
                 else:
-                    print('%s uses Wordpress' % self.host)
+                    print("%s uses Wordpress" % self.host)
                 pass
 
             # Detect Drupal
-            response = requests.get(self.host + '?q=user%2Flogin', allow_redirects=False, headers=self.headers, verify=False, timeout=args.timeout)
-            if ('login' in response.url and response.status_code == 301):
-                if (args.csv):
-                    self.version = 'Drupal'
+            response = requests.get(
+                self.host + "?q=user%2Flogin",
+                allow_redirects=False,
+                headers=self.headers,
+                verify=False,
+                timeout=args.timeout,
+            )
+            if "login" in response.url and response.status_code == 301:
+                if args.csv:
+                    self.version = "Drupal"
                 else:
-                    print('%s uses Drupal' % self.host)
+                    print("%s uses Drupal" % self.host)
                 pass
 
             # Detect Neos
-            response = requests.get(self.host + 'neos', allow_redirects=False, headers=self.headers, verify=False, timeout=args.timeout)
-            if ('neos' in response.url and response.status_code == 303):
-                if (args.csv):
-                    self.version = 'Neos'
+            response = requests.get(
+                self.host + "neos",
+                allow_redirects=False,
+                headers=self.headers,
+                verify=False,
+                timeout=args.timeout,
+            )
+            if "neos" in response.url and response.status_code == 303:
+                if args.csv:
+                    self.version = "Neos"
                 else:
-                    print('%s uses Neos' % self.host)
+                    print("%s uses Neos" % self.host)
                 pass
 
         if args.ping:
-            response = requests.get(self.host + 'sitemap.xml', allow_redirects=True, headers=self.headers, verify=False, timeout=args.timeout)
-            if (response.status_code == 200 and response.headers.get('Content-Type') == 'application/xml'):
+            response = requests.get(
+                self.host + "sitemap.xml",
+                allow_redirects=True,
+                headers=self.headers,
+                verify=False,
+                timeout=args.timeout,
+            )
+            if (
+                response.status_code == 200
+                and response.headers.get("Content-Type") == "application/xml"
+            ):
                 sitemap = xml.fromstring(response.text)
                 sites = []
 
-                for child in sitemap.findall('sitemap:sitemap', self.SITEMAP_NAMESPACE):
-                    sitemapFile = child.find('sitemap:loc', self.SITEMAP_NAMESPACE).text
-                    subRequest = requests.get(sitemapFile, allow_redirects=True, headers=self.headers, verify=False, timeout=args.timeout)
-                    if (subRequest.status_code == 200 and subRequest.headers.get('Content-Type') == 'application/xml'):
+                for child in sitemap.findall("sitemap:sitemap", self.SITEMAP_NAMESPACE):
+                    sitemapFile = child.find("sitemap:loc", self.SITEMAP_NAMESPACE).text
+                    subRequest = requests.get(
+                        sitemapFile,
+                        allow_redirects=True,
+                        headers=self.headers,
+                        verify=False,
+                        timeout=args.timeout,
+                    )
+                    if (
+                        subRequest.status_code == 200
+                        and subRequest.headers.get("Content-Type") == "application/xml"
+                    ):
                         sitemap = xml.fromstring(subRequest.text)
-                        for node in sitemap.findall('sitemap:url', self.SITEMAP_NAMESPACE):
-                            url = node.find('sitemap:loc', self.SITEMAP_NAMESPACE).text
+                        for node in sitemap.findall(
+                            "sitemap:url", self.SITEMAP_NAMESPACE
+                        ):
+                            url = node.find("sitemap:loc", self.SITEMAP_NAMESPACE).text
                             statusCode = self.get_url_status_code(url)
-                            if (statusCode != 200):
+                            if statusCode != 200:
                                 print("%d;%s" % (statusCode, url))
 
         if self.redirected and args.redirects or args.all:
@@ -175,16 +266,21 @@ class scanner:
                 print("Redirected to %s" % self.host)
 
         if (args.bundles or args.all) and not args.csv:
-            for file in os.listdir(self.PROJECT_ROOT + '/bundles'):
+            for file in os.listdir(self.PROJECT_ROOT + "/bundles"):
                 if file.endswith(".json"):
-                    f = open(self.PROJECT_ROOT + '/bundles/' + file,)
+                    f = open(
+                        self.PROJECT_ROOT + "/bundles/" + file,
+                    )
                     plugin = json.loads(f.read())
-                    if (self.host_has_file(self.host, plugin['path'])):
-                        print('Bundle Detected: %s by %s, %s' % (plugin['name'], plugin['author'], plugin['url']))
+                    if self.host_has_file(self.host, plugin["path"]):
+                        print(
+                            "Bundle Detected: %s by %s, %s"
+                            % (plugin["name"], plugin["author"], plugin["url"])
+                        )
                     f.close()
 
-        if (args.average_time or args.all)  and not args.csv:
-            print('Average response time: %d ms' % (self.get_average_response_time()))
+        if (args.average_time or args.all) and not args.csv:
+            print("Average response time: %d ms" % (self.get_average_response_time()))
 
         if args.csv:
             print(self.get_csv_string())
@@ -192,12 +288,23 @@ class scanner:
     def host_has_file(self, host, file):
         time.sleep(self.args.pause)
         try:
-            response = requests.get(host + file, allow_redirects=True, headers=self.headers, verify=False, timeout=self.args.timeout)
-            if response.status_code == 200 \
-                and file in response.url \
-                and response.headers['Content-Type'].find("html") < 0 \
-                and (not 'Server' in response.headers or response.headers['Server'].find('nginx') >= 0 or response.headers['Server'].find('Apache') >= 0):
-
+            response = requests.get(
+                host + file,
+                allow_redirects=True,
+                headers=self.headers,
+                verify=False,
+                timeout=self.args.timeout,
+            )
+            if (
+                response.status_code == 200
+                and file in response.url
+                and response.headers["Content-Type"].find("html") < 0
+                and (
+                    not "Server" in response.headers
+                    or response.headers["Server"].find("nginx") >= 0
+                    or response.headers["Server"].find("Apache") >= 0
+                )
+            ):
                 self.responseTimeTotal += response.elapsed.microseconds
                 self.requestCounter += 1
 
@@ -208,19 +315,27 @@ class scanner:
             return False
 
     def compare_hosts(self, request_url, response_url):
-        regex = re.compile('(?P<schema>http[s]{0,1}:\/\/){0,1}(?P<host>[0-9a-z\.-]+)(?P<path>\/.*){0,1}')
-        request_host = regex.search(request_url).group('host')
-        response_host = regex.search(response_url).group('host')
+        regex = re.compile(
+            r"(?P<schema>http[s]{0,1}:\/\/){0,1}(?P<host>[0-9a-z\.-]+)(?P<path>\/.*){0,1}"
+        )
+        request_host = regex.search(request_url).group("host")
+        response_host = regex.search(response_url).group("host")
 
         return bool(request_host == response_host)
 
     def get_url_status_code(self, url):
-        response = requests.get(url, allow_redirects=True, headers=self.headers, verify=False, timeout=self.args.timeout)
+        response = requests.get(
+            url,
+            allow_redirects=True,
+            headers=self.headers,
+            verify=False,
+            timeout=self.args.timeout,
+        )
         return response.status_code
 
     def split_robots_line(self, line):
-        content = line.split(': ')
-        if (len(content) > 1):
+        content = line.split(": ")
+        if len(content) > 1:
             return content[1]
         else:
             return False
@@ -228,104 +343,194 @@ class scanner:
     def get_average_response_time(self):
         if self.requestCounter > 0 and self.responseTimeTotal > 0:
             return round(self.responseTimeTotal / self.requestCounter / 1000)
-        return 'unknown'
+        return "unknown"
 
     def analyse_robots_line(self, line):
-        if ('Disallow' in line):
+        if "Disallow" in line:
             str = self.split_robots_line(line)
-            if (str != False and str != '/'):
-                print('Found a disabled path in robotx.txt: %s' % str)
-        if ('Sitemap:' in line and line.index('Sitemap') == 0):
+            if str != False and str != "/":
+                print("Found a disabled path in robotx.txt: %s" % str)
+        if "Sitemap:" in line and line.index("Sitemap") == 0:
             str = self.split_robots_line(line)
-            if (str != False):
-                print('Found a sitemap in robots.txt: %s' % str)
+            if str != False:
+                print("Found a sitemap in robots.txt: %s" % str)
 
     def fetch_domain_from_sitemap(self, sitemapUrl):
-        response = requests.get(sitemapUrl, allow_redirects=True, headers=self.headers, verify=False, timeout=self.args.timeout)
-        if (response.status_code == 200 and response.headers.get('Content-Type') == 'application/xml'):
+        response = requests.get(
+            sitemapUrl,
+            allow_redirects=True,
+            headers=self.headers,
+            verify=False,
+            timeout=self.args.timeout,
+        )
+        if (
+            response.status_code == 200
+            and response.headers.get("Content-Type") == "application/xml"
+        ):
             sitemap = xml.fromstring(response.text)
-            return sitemap.find('sitemap:url', self.SITEMAP_NAMESPACE).find('sitemap:loc', self.SITEMAP_NAMESPACE).text
+            return (
+                sitemap.find("sitemap:url", self.SITEMAP_NAMESPACE)
+                .find("sitemap:loc", self.SITEMAP_NAMESPACE)
+                .text
+            )
 
     def get_csv_string(self):
-        return ";".join([self.host, str(self.originalHost), str(self.ip), str(self.ssl), str(self.version), str(self.get_average_response_time())])
+        return ";".join(
+            [
+                self.host,
+                str(self.originalHost),
+                str(self.ip),
+                str(self.ssl),
+                str(self.version),
+                str(self.get_average_response_time()),
+            ]
+        )
 
     def detect_version(self):
-        if (self.host_has_file(self.host, 'bundles/pimcoreadmin/img/login/pcx.svg')):
-            if (self.host_has_file(self.host, 'bundles/pimcoreadmin/img/flat-color-icons/lock-gray.svg')):
-                return '10.4'
-            if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/pimcore/event-dispatcher.js')):
-                return '10.5'
-            if (self.host_has_file(self.host, 'bundles/pimcoreadmin/img/flat-color-icons/static_page.svg')):
-                return '10.1'
-            return '10.0'
+        if self.host_has_file(self.host, "bundles/pimcoreadmin/img/login/pcx.svg"):
+            if self.host_has_file(
+                self.host, "bundles/pimcoreadmin/img/flat-color-icons/lock-gray.svg"
+            ):
+                return "10.4"
+            if self.host_has_file(
+                self.host, "bundles/pimcoreadmin/js/pimcore/event-dispatcher.js"
+            ):
+                return "10.5"
+            if self.host_has_file(
+                self.host, "bundles/pimcoreadmin/img/flat-color-icons/static_page.svg"
+            ):
+                return "10.1"
+            return "10.0"
 
-        if (self.host_has_file(self.host, 'bundles/pimcoreadmin/img/login/pimconaut-world.svg')):
-            if (not self.host_has_file(self.host, 'bundles/pimcoreadmin/js/pimcore/object/bulk-base.js')):
-                return '6.0'
-            if (not self.host_has_file(self.host, 'bundles/pimcoreadmin/js/lib/ckeditor/vendor/promise.js')):
-                return '6.1'
-            if (not self.host_has_file(self.host, 'bundles/pimcoreadmin/js/pimcore/asset/gridexport/csv.js')):
-                return '6.2'
-            if (not self.host_has_file(self.host, 'bundles/pimcoreadmin/img/flat-color-icons/email-forward.svg')):
-                return '6.3'
-            if (not self.host_has_file(self.host, 'bundles/pimcoreadmin/js/lib/ckeditor/plugins/clipboard/dialogs/paste.js')):
-                return '6.4'
-            if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/pimcore/document/editable.js')):
-                if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/pimcore/document/editables/area_abstract.js')):
-                    return '6.9'
-                return '6.8'
-            if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/pimcore/asset/metadata/editor.js')):
-                return '6.7'
-            if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/pimcore/asset/metadata/data/asset.js')):
-                return '6.6'
-            return '6.5 <= x <= 6.6'
+        if self.host_has_file(
+            self.host, "bundles/pimcoreadmin/img/login/pimconaut-world.svg"
+        ):
+            if not self.host_has_file(
+                self.host, "bundles/pimcoreadmin/js/pimcore/object/bulk-base.js"
+            ):
+                return "6.0"
+            if not self.host_has_file(
+                self.host, "bundles/pimcoreadmin/js/lib/ckeditor/vendor/promise.js"
+            ):
+                return "6.1"
+            if not self.host_has_file(
+                self.host, "bundles/pimcoreadmin/js/pimcore/asset/gridexport/csv.js"
+            ):
+                return "6.2"
+            if not self.host_has_file(
+                self.host, "bundles/pimcoreadmin/img/flat-color-icons/email-forward.svg"
+            ):
+                return "6.3"
+            if not self.host_has_file(
+                self.host,
+                "bundles/pimcoreadmin/js/lib/ckeditor/plugins/clipboard/dialogs/paste.js",
+            ):
+                return "6.4"
+            if self.host_has_file(
+                self.host, "bundles/pimcoreadmin/js/pimcore/document/editable.js"
+            ):
+                if self.host_has_file(
+                    self.host,
+                    "bundles/pimcoreadmin/js/pimcore/document/editables/area_abstract.js",
+                ):
+                    return "6.9"
+                return "6.8"
+            if self.host_has_file(
+                self.host, "bundles/pimcoreadmin/js/pimcore/asset/metadata/editor.js"
+            ):
+                return "6.7"
+            if self.host_has_file(
+                self.host,
+                "bundles/pimcoreadmin/js/pimcore/asset/metadata/data/asset.js",
+            ):
+                return "6.6"
+            return "6.5 <= x <= 6.6"
 
-        if (self.host_has_file(self.host, 'pimcore/static6/img/logo-white.svg')):
-            if (self.host_has_file(self.host, 'pimcore/static6/img/flat-color-icons/book.svg')):
-                if (self.host_has_file(self.host, 'pimcore/static6/img/flat-color-icons/warning.svg')):
-                    if (self.host_has_file(self.host, 'pimcore/static6/js/pimcore/document/newsletters/addressSourceAdapters/csvList.js')):
-                        if (self.host_has_file(self.host, 'pimcore/static6/js/pimcore/document/newsletters/addressSourceAdapters/report.js')):
-                            if (self.host_has_file(self.host, 'pimcore/static6/js/pimcore/settings/user/websiteTranslationSettings.js')):
-                                if (self.host_has_file(self.host, 'pimcore/static6/js/pimcore/object/helpers/gridCellEditor.js')):
-                                    return '4.6'
-                                return '4.5'
-                            return '4.4'
-                        return '4.3'
-                    return '4.2'
-                return '4.1'
-            return '4.0'
+        if self.host_has_file(self.host, "pimcore/static6/img/logo-white.svg"):
+            if self.host_has_file(
+                self.host, "pimcore/static6/img/flat-color-icons/book.svg"
+            ):
+                if self.host_has_file(
+                    self.host, "pimcore/static6/img/flat-color-icons/warning.svg"
+                ):
+                    if self.host_has_file(
+                        self.host,
+                        "pimcore/static6/js/pimcore/document/newsletters/addressSourceAdapters/csvList.js",
+                    ):
+                        if self.host_has_file(
+                            self.host,
+                            "pimcore/static6/js/pimcore/document/newsletters/addressSourceAdapters/report.js",
+                        ):
+                            if self.host_has_file(
+                                self.host,
+                                "pimcore/static6/js/pimcore/settings/user/websiteTranslationSettings.js",
+                            ):
+                                if self.host_has_file(
+                                    self.host,
+                                    "pimcore/static6/js/pimcore/object/helpers/gridCellEditor.js",
+                                ):
+                                    return "4.6"
+                                return "4.5"
+                            return "4.4"
+                        return "4.3"
+                    return "4.2"
+                return "4.1"
+            return "4.0"
 
-        if (self.host_has_file(self.host, 'bundles/pimcoreadmin/img/logo.svg') or self.host_has_file(self.host, 'pimcore/static6/img/logo.svg')):
-            if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/lib/jquery-3.3.1.min.js')):
-                if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/pimcore/element/workflows.js')):
-                    if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/pimcore/object/gridcolumn/operator/Iterator.js')):
-                        if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/lib/ckeditor/lang/es-mx.js')):
-                            return '5.8'
+        if self.host_has_file(
+            self.host, "bundles/pimcoreadmin/img/logo.svg"
+        ) or self.host_has_file(self.host, "pimcore/static6/img/logo.svg"):
+            if self.host_has_file(
+                self.host, "bundles/pimcoreadmin/js/lib/jquery-3.3.1.min.js"
+            ):
+                if self.host_has_file(
+                    self.host, "bundles/pimcoreadmin/js/pimcore/element/workflows.js"
+                ):
+                    if self.host_has_file(
+                        self.host,
+                        "bundles/pimcoreadmin/js/pimcore/object/gridcolumn/operator/Iterator.js",
+                    ):
+                        if self.host_has_file(
+                            self.host,
+                            "bundles/pimcoreadmin/js/lib/ckeditor/lang/es-mx.js",
+                        ):
+                            return "5.8"
                         else:
-                            return '5.7'
-                    return '5.6'
-                return '5.4'
-            if (self.host_has_file(self.host, 'bundles/pimcoreadmin/js/lib/jquery-3.3.1.min.js')):
-                return '5.2 <= x <= 5.3'
-            return '5.0'
+                            return "5.7"
+                    return "5.6"
+                return "5.4"
+            if self.host_has_file(
+                self.host, "bundles/pimcoreadmin/js/lib/jquery-3.3.1.min.js"
+            ):
+                return "5.2 <= x <= 5.3"
+            return "5.0"
 
-        if (self.host_has_file(self.host, 'pimcore/static/img/icon/web-browser_small.png')):
-            if (self.host_has_file(self.host, 'pimcore/static6/swf/expressInstall.swf')):
-                return '3.1'
-            return '3.0'
+        if self.host_has_file(
+            self.host, "pimcore/static/img/icon/web-browser_small.png"
+        ):
+            if self.host_has_file(self.host, "pimcore/static6/swf/expressInstall.swf"):
+                return "3.1"
+            return "3.0"
 
-        if (self.host_has_file(self.host, 'pimcore/static/img/login/logo.png')):
-            return '2'
+        if self.host_has_file(self.host, "pimcore/static/img/login/logo.png"):
+            return "2"
 
     def detect_major_version(self):
-        if (self.host_has_file(self.host, 'bundles/pimcoreadmin/img/login/pcx.svg')):
-            return '10'
+        if self.host_has_file(self.host, "bundles/pimcorewordexport/js/startup.js"):
+            if self.host_has_file(self.host, "bundles/pimcoretinymce/css/editor.css"):
+                return "11"
+            return "12"
 
-        if (self.host_has_file(self.host, 'bundles/pimcoreadmin/img/login/pimconaut-world.svg')):
-            return '6'
+        if self.host_has_file(self.host, "bundles/pimcoreadmin/img/login/pcx.svg"):
+            return "10"
 
-        if (self.host_has_file(self.host, 'bundles/pimcoreadmin/img/logo.svg')):
-            return '5'
+        if self.host_has_file(
+            self.host, "bundles/pimcoreadmin/img/login/pimconaut-world.svg"
+        ):
+            return "6"
 
-        if (self.host_has_file(self.host, 'pimcore/static6/img/logo.svg')):
-            return '4'
+        if self.host_has_file(self.host, "bundles/pimcoreadmin/img/logo.svg"):
+            return "5"
+
+        if self.host_has_file(self.host, "pimcore/static6/img/logo.svg"):
+            return "4"
